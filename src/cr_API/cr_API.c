@@ -4,16 +4,16 @@
 #include "cr_API.h"
 
 void cr_mount(char* diskname){
-    return 1;
+    return;
 }
 void cr_bitmap(unsigned disk, bool hex){
-    return 1;
+    return;
 }
 int cr_exists(unsigned disk, char* filename){
     return 1;
 }
 void cr_ls(unsigned disk){
-    return 1;
+    return;
 }
 crFILE* cr_open(unsigned disk, char* filename, char mode){
     return 1;
