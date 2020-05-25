@@ -11,7 +11,7 @@
 *Funciones Generales*
 
 ```c
-void cr_mount(char* diskname)
+void cr_mount(char* diskname) OK
 pone como var. global la ruta del archivo .bin del disco.
 
 void cr_bitmap(unsigned disk, bool hex)
