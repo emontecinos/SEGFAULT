@@ -9,8 +9,6 @@ int main(int argument_count, char** arguments){
     // ./crfs simdisk.bin
     // printf("%s\n",ROUTE);
 
-
-    
     cr_mount(arguments[1]);
 
     printf("%s\n",PATH);
