@@ -1,8 +1,8 @@
 typedef struct crFILE
 {
-    int algo;
+    int size;
 }crFILE;
-char* ROUTE;
+char* PATH;
 
 void cr_mount(char* diskname);
 

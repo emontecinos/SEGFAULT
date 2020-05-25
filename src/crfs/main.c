@@ -3,13 +3,15 @@
 #include <stdbool.h>
 #include "../cr_API/cr_API.h"
 
-extern char* ROUTE;
+extern char* PATH;
 int main(int argument_count, char** arguments){
     // Modo de uso 
     // ./crfs simdisk.bin
     // printf("%s\n",ROUTE);
+    
     cr_mount(arguments[1]);
-    printf("%s\n",ROUTE);
+
+    printf("%s\n",PATH);
 
     // cr_bitmap(ROUTE, bool hex);
 

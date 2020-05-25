@@ -3,10 +3,10 @@
 #include <stdbool.h>
 #include "cr_API.h"
 
-extern char* ROUTE;
+extern char* PATH;
 
 void cr_mount(char* diskname){
-    ROUTE = diskname;
+    PATH = diskname;
     return;
 }
 void cr_bitmap(unsigned disk, bool hex){
@@ -20,7 +20,7 @@ void cr_ls(unsigned disk){
 }
 // crFILE* cr_open(unsigned disk, char* filename, char mode){
 //     crFILE* crfile=malloc(sizeof(crFILE));
-//     crfile ->algo=1;
+//     crfile ->size=1;
 //     return crfile;
 // }
 int cr_read (crFILE* file_desc, void* buffer, int nbytes){
