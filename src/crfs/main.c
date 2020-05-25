@@ -8,6 +8,8 @@ int main(int argument_count, char** arguments){
     // Modo de uso 
     // ./crfs simdisk.bin
     // printf("%s\n",ROUTE);
+
+
     
     cr_mount(arguments[1]);
 
