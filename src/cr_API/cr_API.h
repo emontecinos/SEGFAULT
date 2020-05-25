@@ -12,7 +12,7 @@ int cr_exists(unsigned disk, char* filename);
 
 void cr_ls(unsigned disk);
 
-// crFILE* cr_open(unsigned disk, char* filename, char mode);
+crFILE* cr_open(unsigned disk, char* filename, char mode);
 
 int cr_read (crFILE* file_desc, void* buffer, int nbytes);
 

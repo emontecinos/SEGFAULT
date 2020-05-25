@@ -18,11 +18,11 @@ int cr_exists(unsigned disk, char* filename){
 void cr_ls(unsigned disk){
     return;
 }
-// crFILE* cr_open(unsigned disk, char* filename, char mode){
-//     crFILE* crfile=malloc(sizeof(crFILE));
-//     crfile ->size=1;
-//     return crfile;
-// }
+crFILE* cr_open(unsigned disk, char* filename, char mode){
+    crFILE* crfile=malloc(sizeof(crFILE));
+    crfile ->size=1;
+    return crfile;
+}
 int cr_read (crFILE* file_desc, void* buffer, int nbytes){
     return 1;
 }
@@ -30,6 +30,7 @@ int cr_write(crFILE* file_desc, void* buffer, int nbytes){
     return 1;
 }
 int cr_close(crFILE* file_desc){
+    free(file_desc);
     return 1;
 }
 int cr_rm(unsigned disk, char* filename){
