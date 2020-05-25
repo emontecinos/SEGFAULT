@@ -1,3 +1,10 @@
+**Struct rmFILE: Que debe tener?**
+* size
+* posición/bloque inicial
+* posición/bloque final
+
+**Documentación**  [aqui](https://docs.google.com/document/d/1mAX-Yt7YYmibCu53DxbZXm0bplpG2ivJRbbj-PVcJCU/edit?usp=sharing)
+
 **Funciones Proyecto**
 
 *Funciones Generales*
