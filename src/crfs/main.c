@@ -6,14 +6,14 @@
 extern char* PATH;
 int main(int argument_count, char** arguments){
     // Modo de uso 
-    // ./crfs simdisk.bin
+    // ./crfs simdiskfilled.bin
     // printf("%s\n",ROUTE);
 
     cr_mount(arguments[1]);
 
     printf("%s\n",PATH);
 
-    // cr_bitmap(ROUTE, bool hex);
+    cr_bitmap(1, 1);
 
     // cr_exists(ROUTE, char* filename);
 
