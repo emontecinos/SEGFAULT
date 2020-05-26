@@ -5,7 +5,8 @@ typedef struct crFILE
     int size;
     int* array;
     char* nombre;
-    int  puntero_a_bloque;
+    int puntero_a_bloque;
+    int cant_hardlinks;
     char* modo;
 
 }crFILE;
