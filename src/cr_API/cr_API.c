@@ -23,6 +23,7 @@ void cr_bitmap(unsigned disk, bool hex){
     int c,i;
     bit_a_revisar= disk*536870912 + 8192;
     fseek(file,bit_a_revisar,SEEK_SET);
+    // fread(buff, 1, 1, file);
     for (i=0; i < 16 && (c=getc(file))!=EOF; i++){
         fprintf(stderr,"%x",c);
     }

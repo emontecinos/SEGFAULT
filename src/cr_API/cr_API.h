@@ -1,6 +1,13 @@
+#pragma once 
+
 typedef struct crFILE
 {
     int size;
+    int* array;
+    char* nombre;
+    int  puntero_a_bloque;
+    char* modo;
+
 }crFILE;
 char* PATH;
 
