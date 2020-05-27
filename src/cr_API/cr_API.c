@@ -67,8 +67,8 @@ void cr_bitmap(unsigned disk, bool hex){
             int aux_valor=0;
             int resto;
             for(int i=0; i < 65536;i++){
-                aux_valor+=(int)buffer[i]*pow(2,i%4);// Ver endianess, 2^resto o 2^i-resto
-                if (i %4==0){
+                aux_valor+=(buffer[i]-48)*pow(2,3-(i%4));// Ver endianess, 2^resto o 2^i-resto
+                if (i%4==0&&i!=0){
                     fprintf(stderr,"%X",aux_valor); 
                     valor+= aux_valor;
                     aux_valor=0;
