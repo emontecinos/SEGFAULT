@@ -13,11 +13,37 @@ void cr_bitmap(unsigned disk, bool hex){
     return;
 }
 int cr_exists(unsigned disk, char* filename){
-    return 1;
+  
+  return 0;
 }
+
+
 void cr_ls(unsigned disk){
+    unsigned char buffer[32];
+    FILE *ptr; ///Cachar que onda con esto, se deberia abrir con el path?
+
+    ptr = fopen(PATH,"rb");
+
+    fseek(ptr, 32*256*65536*disk, SEEK_SET);
+
+    for (int i = 0; i < 256; i++)
+    {
+      fread(buffer,sizeof(buffer),1,ptr);
+
+        if(buffer[0] > 0x7f)
+        {
+          for (int j = 3; j < 32; j++)
+          {
+            printf("%c", buffer[j]);
+          }
+          printf("\n");
+        }
+    }
+    fclose(ptr);
+
     return;
 }
+
 crFILE* cr_open(unsigned disk, char* filename, char mode){
     crFILE* crfile=malloc(sizeof(crFILE));
     crfile ->size=1;
