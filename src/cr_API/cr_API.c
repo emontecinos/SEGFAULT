@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "cr_API.h"
+#include <string.h>
 
 extern char* PATH;
 
@@ -13,8 +14,53 @@ void cr_bitmap(unsigned disk, bool hex){
     return;
 }
 int cr_exists(unsigned disk, char* filename){
-  
-  return 0;
+
+    // printf("%u\n", disk);
+    // printf("%s\n", filename);
+    // printf("..............\n");
+    if (disk == 1 || disk == 2 || disk == 3 || disk == 4)
+    {
+      FILE *ptr; ///Cachar que onda con esto, se deberia abrir con el path?
+      if (strchr(filename, '/') != NULL)
+      {
+      printf("aaaaaa\n");
+      }
+
+      ptr = fopen(PATH, "rb");
+
+      fseek(ptr, 32*256*65536*(disk - 1), SEEK_SET);
+      unsigned char buffer[32];
+      int aux; //ver si hay forma de que no sea esto necesario
+      for (int i = 0; i < 256; i++)
+      {
+        fread(buffer, sizeof(buffer), 1, ptr);
+
+          if(buffer[0] > 0x7f)
+          {
+            int j;
+            for (j = 0; buffer[j + 3] || filename[j]; j++)
+            {
+              aux = 1;
+              if (buffer[j + 3] != filename[j])
+              {
+                aux = 0;
+                break;
+              }
+            }
+            if (aux == 1)
+            {
+              fclose(ptr);
+              return 1;
+            }
+          }
+      }
+      fclose(ptr);
+      return 0;
+    }
+  else
+  {
+    return -1;
+  }
 }
 
 

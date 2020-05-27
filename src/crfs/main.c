@@ -20,7 +20,7 @@ int main(int argument_count, char** arguments){
     // cr_ls(3);
 
     int existe;
-    existe = cr_exists(1, "yes.mp3");
+    existe = cr_exists(2, "yes.mp3");
     printf("existe: %i\n", existe);
 
     return 1;
