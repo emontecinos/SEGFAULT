@@ -3,7 +3,7 @@
 typedef struct crFILE
 {
     int size;
-    int* array;
+    int* bloques;
     char* nombre;
     int puntero_a_bloque;
     int cant_hardlinks;
