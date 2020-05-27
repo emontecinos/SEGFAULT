@@ -14,6 +14,9 @@ int main(int argument_count, char** arguments){
     printf("%s\n",PATH);
 
     cr_bitmap(1, 1);
+    cr_bitmap(2, 1);
+    cr_bitmap(3, 1);
+    cr_bitmap(4, 1);
 
     // cr_exists(ROUTE, char* filename);
 

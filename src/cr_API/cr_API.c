@@ -13,40 +13,49 @@ void cr_mount(char* diskname){
     return;
 }
 void cr_bitmap(unsigned disk, bool hex){
-    int fd= 2; // STRERR
-    char buff[65536];
-    off_t bit_a_revisar=0;
-    int bytes_read;
-    size_t size_block=65536;
-    size_t leidos;
-    FILE* file = fopen("simdiskfilled.bin","rb");
-    int c,i;
-    bit_a_revisar= disk*536870912 + 8192;
-    fseek(file,bit_a_revisar,SEEK_SET);
-    // fread(buff, 1, 1, file);
-    for (i=0; i < 16 && (c=getc(file))!=EOF; i++){
-        fprintf(stderr,"%x",c);
-    }
-    printf("\ni %d\n",i);
-    fseek(file,bit_a_revisar,SEEK_SET);
-    for (i=0; i < 16 && (c=getc(file))!=EOF; i++){
-        fprintf(stderr,"%02X",c&0xff);
-        fprintf(stderr," ");
-        
-        
-    }
-    printf("\ni %d\n",i);
 
-    
-    
-    // printf("Marc1\n");
-    // fflush(stdout);
-    // fread(buff,size_block,1,file);
-    // printf("Marc2\n");
-    // fflush(stdout);
-    // fprintf(stderr,"%x\n",buff);
+    unsigned char buffer[65536]; //#bloques en particion
+    char aux_buffer[1];
+    size_t bytes_leidos=0;
+    unsigned int byte_lectura;
+    int bloques_ocupados=0;
+    int bloques_desocupados=0;
+    int aux_bytes_leidos=0;
+    int aux_bit;
+    int pos_buffer=0;
+    FILE* file = fopen(PATH,"rb");
+    if(disk > 0){
+        byte_lectura=(disk-1)*536870912+8192; // tamano particion + un bloque
+        // lectura en bytes
+        fseek(file,byte_lectura,SEEK_SET); // puntero lectura desde posicion byte_lectura desde el inicio (SEEK_SET)
+        while(bytes_leidos < 8192){
+            aux_bytes_leidos=fread(aux_buffer,1,1,file);
+            for (int i =0; i < 8; i++){
+                aux_bit= aux_buffer[0]&1; // and entre el byte leido y 1; al shiftearlo voy bit por bit.
+                
+                if(aux_bit==1){ // aumento el contador
+                    bloques_ocupados++;
+                }else {
+                    bloques_desocupados++;
+                    }
+                buffer[pos_buffer]=aux_bit+'0';
+                aux_buffer[0]>>=1; //shift right en 1.
+                aux_bit++;
+                pos_buffer++;
+            }
+            bytes_leidos += 1;
+        }
+    }else{
+        printf("non\n");
+    }
+    // for(int i=0; i < 65536;i++){
+    //     printf("%c",buffer[i]);
+    //     if (i %15==0){
+    //         printf("\n");
+    //     }
+    // }
+    printf("disco: %d\nOcupados: %d Libres: %d\nTotal: %d\n",disk,bloques_ocupados,bloques_desocupados,bloques_ocupados+bloques_desocupados);
     fclose(file);
-
     return;
 }
 int cr_exists(unsigned disk, char* filename){
