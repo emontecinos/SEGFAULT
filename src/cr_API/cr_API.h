@@ -3,11 +3,13 @@
 typedef struct crFILE
 {
     int size;
-    int* bloques;
+    int* bytes;
     char* nombre;
     int puntero_a_bloque;
     int cant_hardlinks;
     char* modo;
+    int max_size_bytes;
+    int pos_en_array;
 
 }crFILE;
 char* PATH;

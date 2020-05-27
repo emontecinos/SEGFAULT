@@ -116,7 +116,14 @@ int cr_read (crFILE* file_desc, void* buffer, int nbytes){
     return 1;
 }
 int cr_write(crFILE* file_desc, void* buffer, int nbytes){
-    return 1;
+    int n_max=0;
+    if (file_desc->size+nbytes <=file_desc->max_size_bytes)n_max=nbytes;
+    else n_max=file_desc->max_size_bytes-file_desc->size;
+    for(int i=0;i<n_max;i++){
+        file_desc->bytes[file_desc->size]=buffer[i];//file_desc->pos_en_buffer quizas sirve
+        size++;
+    }
+    return n_max;
 }
 int cr_close(crFILE* file_desc){
     free(file_desc);
