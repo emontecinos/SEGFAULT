@@ -1,9 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <sys/types.h>
 #include <unistd.h> 
 #include <fcntl.h>
+#include <math.h>
 #include "cr_API.h"
 
 extern char* PATH;
@@ -13,19 +15,20 @@ void cr_mount(char* diskname){
     return;
 }
 void cr_bitmap(unsigned disk, bool hex){
+    int64_t valor=0;
+    int* leer_disco(unsigned disk,bool hex, int* valores){
 
-    unsigned char buffer[65536]; //#bloques en particion
-    char aux_buffer[1];
-    size_t bytes_leidos=0;
-    unsigned int byte_lectura;
-    int bloques_ocupados=0;
-    int bloques_desocupados=0;
-    int aux_bytes_leidos=0;
-    int aux_bit;
-    int pos_buffer=0;
-    FILE* file = fopen(PATH,"rb");
-    if(disk > 0){
-        byte_lectura=(disk-1)*536870912+8192; // tamano particion + un bloque
+        unsigned char buffer[65536]; //#bloques en particion
+        char aux_buffer[1];
+        size_t bytes_leidos=0;
+        unsigned int byte_lectura;
+        int bloques_ocupados=0;
+        int bloques_desocupados=0;
+        int aux_bytes_leidos=0;
+        int aux_bit;
+        int pos_buffer=0;
+        FILE* file = fopen(PATH,"rb");
+        byte_lectura=(disk-1)*pow(2,29)+pow(2,13); // tamano particion + un bloque
         // lectura en bytes
         fseek(file,byte_lectura,SEEK_SET); // puntero lectura desde posicion byte_lectura desde el inicio (SEEK_SET)
         while(bytes_leidos < 8192){
@@ -45,17 +48,49 @@ void cr_bitmap(unsigned disk, bool hex){
             }
             bytes_leidos += 1;
         }
-    }else{
-        printf("non\n");
+        fclose(file);
+        if(hex==0){
+            for(int i=0; i < 65536;i++){
+                fprintf(stderr,"%c",buffer[i]);
+                //valor+=pow(2,i); endianness?
+            }
+            //fprintf(stderr,"\n");
+        }else{
+            int aux_valor=0;
+            int resto;
+            for(int i=0; i < 65536;i++){
+                aux_valor+=(int)buffer[i]*pow(2,i%8);// Ver endianess, 2^resto o 2^i-resto
+                if (i %8==0){
+                    //fprintf(stderr,"%X",aux_valor); 
+                    valor+= aux_valor;
+                    aux_valor=0;
+                }
+            }
+        }
+        valores[0]=bloques_ocupados;
+        valores[1]=bloques_desocupados;
+        return valores;
     }
-    // for(int i=0; i < 65536;i++){
-    //     printf("%c",buffer[i]);
-    //     if (i %15==0){
-    //         printf("\n");
-    //     }
-    // }
-    printf("disco: %d\nOcupados: %d Libres: %d\nTotal: %d\n",disk,bloques_ocupados,bloques_desocupados,bloques_ocupados+bloques_desocupados);
-    fclose(file);
+    
+    if(disk >0){
+        int arr[2];
+        int* valores=leer_disco(disk,hex,arr);
+        fprintf(stderr,"disco: %d\nOcupados: %d Libres: %d\n",disk,valores[0],valores[1]);
+    }else{
+        int bloques_ocupados[4];
+        int bloques_desocupados[4];
+        int arr[2];
+        for (int i=1;i<5;i++){
+            int* valores =leer_disco(i,hex,arr);
+            bloques_ocupados[i-1]=valores[0];
+            bloques_desocupados[i-1]=valores[1];
+        }
+        for (int i=1;i<5;i++){
+            fprintf(stderr,"disco: %d\nOcupados: %d Libres: %d\n",i,bloques_ocupados[i-1],bloques_desocupados[i-1]);
+        }
+    }
+    // printf("\nValor, %llX\n%lld\n",valor,valor);
+    
     return;
 }
 int cr_exists(unsigned disk, char* filename){
