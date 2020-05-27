@@ -11,12 +11,13 @@ int main(int argument_count, char** arguments){
 
     cr_mount(arguments[1]);
 
-    //cr_bitmap(1,0);
-    int x = 1;
+    cr_bitmap(4,1);
+    // Endianness
+    // int x = 1;
 
-    char *y = (char*)&x;
+    // char *y = (char*)&x;
 
-    printf("%c\n",*y+48);
+    // printf("%c\n",*y+48);
 
     // cr_exists(ROUTE, char* filename);
 

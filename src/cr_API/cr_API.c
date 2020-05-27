@@ -19,7 +19,8 @@ void cr_bitmap(unsigned disk, bool hex){
     int* leer_disco(unsigned disk,bool hex, int* valores){
 
         unsigned char buffer[65536]; //#bloques en particion
-        char aux_buffer[1];
+        unsigned char aux_buffer;
+        //int aux_buffer;
         size_t bytes_leidos=0;
         unsigned int byte_lectura;
         int bloques_ocupados=0;
@@ -32,9 +33,14 @@ void cr_bitmap(unsigned disk, bool hex){
         // lectura en bytes
         fseek(file,byte_lectura,SEEK_SET); // puntero lectura desde posicion byte_lectura desde el inicio (SEEK_SET)
         while(bytes_leidos < 8192){
-            aux_bytes_leidos=fread(aux_buffer,1,1,file);
+            aux_bytes_leidos=fread(&aux_buffer,1,1,file); // byte que leo
+            //printf("BYTE: %ld, %u\n",bytes_leidos, aux_buffer);
+            //aux_bytes_leidos=fread(&aux_buffer,1,1,file);
             for (int i =0; i < 8; i++){
-                aux_bit= aux_buffer[0]&1; // and entre el byte leido y 1; al shiftearlo voy bit por bit.
+                aux_bit= aux_buffer&128;
+                aux_bit=aux_bit>>=7;
+                //aux_bit= aux_buffer&1; // and entre el byte leido y 1; al shiftearlo voy bit por bit.
+                //fprintf(stderr,"%d\n",aux_bit);
                 
                 if(aux_bit==1){ // aumento el contador
                     bloques_ocupados++;
@@ -42,8 +48,10 @@ void cr_bitmap(unsigned disk, bool hex){
                     bloques_desocupados++;
                     }
                 buffer[pos_buffer]=aux_bit+'0';
-                aux_buffer[0]>>=1; //shift right en 1.
-                aux_bit++;
+                aux_buffer=aux_buffer<<1;
+                //aux_buffer>>=1;
+                // aux_buffer[0]>>=1; //shift right en 1.
+                //aux_bit++;
                 pos_buffer++;
             }
             bytes_leidos += 1;
@@ -59,9 +67,9 @@ void cr_bitmap(unsigned disk, bool hex){
             int aux_valor=0;
             int resto;
             for(int i=0; i < 65536;i++){
-                aux_valor+=(int)buffer[i]*pow(2,i%8);// Ver endianess, 2^resto o 2^i-resto
-                if (i %8==0){
-                    //fprintf(stderr,"%X",aux_valor); 
+                aux_valor+=(int)buffer[i]*pow(2,i%4);// Ver endianess, 2^resto o 2^i-resto
+                if (i %4==0){
+                    fprintf(stderr,"%X",aux_valor); 
                     valor+= aux_valor;
                     aux_valor=0;
                 }
