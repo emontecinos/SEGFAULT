@@ -105,6 +105,12 @@ int cr_hardlink(unsigned disk, char* orig, char* dest){
       fread(buffer, sizeof(buffer), 1, ptr);
       printf("%d\n",buffer[0] );
       printf("%c\n", buffer[3] );
+      if (buffer[0] < 0x7f);
+      {
+        unsigned char nuevo_puntero[3];
+        buffer [0] = buffer[0] << 1;
+        memcpy(nuevo_puntero, &buffer[0], 3 * sizeof(unsigned char));
+      }
       if(buffer[0] > 0x7f)
       {
         unsigned char nombre[29];
