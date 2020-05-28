@@ -5,7 +5,7 @@
 
 extern char* PATH;
 int main(int argument_count, char** arguments){
-    // Modo de uso 
+    // Modo de uso
     // ./crfs simdiskfilled.bin
     // printf("%s\n",ROUTE);
 
@@ -13,13 +13,13 @@ int main(int argument_count, char** arguments){
 
     printf("%s\n",PATH);
 
-    cr_bitmap(1, 1);
+    //cr_bitmap(1, 1);
 
     // cr_exists(ROUTE, char* filename);
 
     // cr_ls(ROUTE);
 
-    // cr_open(ROUTE, char* filename, char mode);
+    cr_open(1, "text.txt", 'r');
 
     // cr_read (crFILE* file_desc, void* buffer, int nbytes);
 
@@ -37,7 +37,7 @@ int main(int argument_count, char** arguments){
 
     // cr_load(ROUTE, char* orig);
 
-    
+
 
     return 1;
 }

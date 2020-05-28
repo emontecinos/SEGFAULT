@@ -1,13 +1,15 @@
-#pragma once 
+#pragma once
 
 typedef struct crFILE
 {
     int size;
-    int* array;
+    //int* array;
     char* nombre;
     int puntero_a_bloque;
     int cant_hardlinks;
+    int cant_bloques;
     char* modo;
+    int existe;
 
 }crFILE;
 char* PATH;
@@ -30,4 +32,3 @@ int cr_softlink(unsigned disk_orig, unsigned disk_dest, char* orig, char* dest);
 
 int cr_unload(unsigned disk, char* orig, char* dest);
 int cr_load(unsigned disk, char* orig);
-
