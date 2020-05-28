@@ -5,18 +5,19 @@
 
 extern char* PATH;
 int main(int argument_count, char** arguments){
-    // Modo de uso 
+    // Modo de uso
     // ./crfs simdiskfilled.bin
     // printf("%s\n",ROUTE);
 
     cr_mount(arguments[1]);
 
-    printf("%s\n",PATH);
 
+    /*
     cr_bitmap(1, 1);
     cr_bitmap(2, 1);
     cr_bitmap(3, 1);
     cr_bitmap(4, 1);
+    */
 
     // cr_exists(ROUTE, char* filename);
 
@@ -32,7 +33,7 @@ int main(int argument_count, char** arguments){
 
     // cr_rm(ROUTE, char* filename);
 
-    // cr_hardlink(ROUTE, char* orig, char* dest);
+    cr_hardlink(1, "boroque.mp3", "dest");
 
     // cr_softlink(unsigned disk_orig, unsigned disk_dest, char* orig, char* dest);
 
@@ -40,7 +41,7 @@ int main(int argument_count, char** arguments){
 
     // cr_load(ROUTE, char* orig);
 
-    
+
 
     return 1;
 }
