@@ -19,7 +19,7 @@ int main(int argument_count, char** arguments){
 
     // cr_ls(ROUTE);
 
-    cr_open(1, "text.txt", 'r');
+    cr_open(1, "text.txt", "re");
 
     // cr_read (crFILE* file_desc, void* buffer, int nbytes);
 
