@@ -75,6 +75,7 @@ crFILE* cr_open(unsigned disk, char* filename, char* mode){
     int indice;
     int referencias;
     int porte;
+    int cantidad;
 
 
     if (existe == 1)
@@ -104,7 +105,7 @@ crFILE* cr_open(unsigned disk, char* filename, char* mode){
       //tamaño
       unsigned char buffer3[8];
       fread(buffer3, sizeof(buffer3), 1, ptr);
-      int cantidad;
+      // int cantidad;
       cantidad = calculo_numero(buffer3, 8);
       printf("cantidad %i\n", cantidad);
 
@@ -159,24 +160,58 @@ int cr_read (crFILE* file_desc, void* buffer, int nbytes){
     int bytes_leidos;
     int en_proceso = 1;
     bloque = (file_desc -> byte_leido) / (256 * 32);
+    // printf("bloque: %i\n", bloque);
     byte_de_bloque = (file_desc -> byte_leido) - (bloque * 32 * 256);
+    // printf("byte_de_bloque: %i\n", byte_de_bloque);
     /////////Buscar el bloque indice
     FILE *ptr;
     ptr = fopen(PATH, "rb");
     while (en_proceso) {
-      fseek(ptr, 32*256*(file_desc -> puntero_a_bloque + 12 + bloque*4), SEEK_SET);
+      // printf("%i\n", file_desc -> puntero_a_bloque);
+      // printf("%i\n", 32*256*(file_desc -> puntero_a_bloque) + 12 + bloque*4);
+      // fseek(ptr, 32*256*(file_desc -> puntero_a_bloque + 12 + bloque*4), SEEK_SET);
+      fseek(ptr, 32*256*(file_desc -> puntero_a_bloque) + 12 + bloque * 4, SEEK_SET);
+
       ////// Buscar bloque para comenzar a leer
       //fseek(ptr, 12 + bloque*4, SEEK_CUR);
       unsigned char buffer[4];
       fread(buffer, sizeof(buffer), 1, ptr);
+      // printf("buffer %s\n", buffer);
       bloque_para_leer = calculo_numero(buffer, 4);
+      ///////////
+
       fseek(ptr, 32*256*bloque_para_leer + byte_de_bloque, SEEK_SET);
       //leer
       //fseek(ptr, byte_de_bloque, SEEK_CUR);
-      unsigned char buffer[1];
+      unsigned char buff[1];
       //minimo entre nbytes, lo que queda de este archivo y lo que queda de bloque
       //int aa = min(nbytes, )
-    //for (int i = 0; i < nbytes && i < )
+      int i = 0;
+      for (i = 0; i < nbytes - bytes_leidos && i < file_desc -> size - file_desc -> byte_leido - bytes_leidos && i < 32*256 - byte_de_bloque; i++)
+      {
+        fread(buff, sizeof(buff), 1, ptr);
+        // printf("%s\n", buff);
+      }
+      bytes_leidos += i;
+      printf("nbytes %i\n", nbytes);
+      // printf("i %i\n", i);
+      printf("bytes_leidos = %i\n", bytes_leidos);
+      if (file_desc -> size - file_desc -> byte_leido <= bytes_leidos)
+      {
+        ///no hay mas archivo
+        return bytes_leidos;
+      }
+      else if(nbytes <= bytes_leidos)
+      {
+        ///se leyo todo lo que se queria leer
+        return bytes_leidos;
+      }
+      else
+      {
+        bloque += 1;
+        printf("\n");
+        byte_de_bloque = 0;
+      }
   }
     return 1;
 }
@@ -227,7 +262,7 @@ int calculo_numero(unsigned char buffer[], int iii)
         //suma += 1;
         }
       }
-      //printf("\n");
+      // printf("\n");
   }
   return suma;
 }

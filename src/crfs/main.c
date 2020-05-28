@@ -19,9 +19,13 @@ int main(int argument_count, char** arguments){
 
     // cr_ls(ROUTE);
 
-    cr_open(1, "text.txt", "re");
-
-    // cr_read (crFILE* file_desc, void* buffer, int nbytes);
+    crFILE* archivo;
+    archivo = cr_open(1, "text.txt", "r");
+    if (archivo == NULL)
+    {
+      printf("NULL\n");
+    }
+    cr_read(archivo, 1, 3906118);
 
     // cr_write(crFILE* file_desc, void* buffer, int nbytes);
 
