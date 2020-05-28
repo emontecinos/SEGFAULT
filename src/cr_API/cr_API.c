@@ -132,27 +132,52 @@ crFILE* cr_open(unsigned disk, char* filename, char* mode){
         indice = 0;
         referencias = 0;
         porte = 0;
+        cantidad = 0;
       }
-
     }
-
     else
     {
       return NULL;
     }
     /////////
     crFILE* crfile = malloc(sizeof(crFILE));
-    crfile -> size = 1;
+    crfile -> size = cantidad;
     crfile -> nombre = filename;
     crfile -> puntero_a_bloque = indice;
     crfile -> cant_hardlinks = referencias;
     crfile -> cant_bloques = porte;
     crfile -> modo = mode;
     crfile -> existe = existe;
+    crfile -> byte_leido = 0;
     return crfile;
 }
 
 int cr_read (crFILE* file_desc, void* buffer, int nbytes){
+    int bloque;
+    int byte_de_bloque;
+    int bloque_para_leer;
+    int bytes_leidos;
+    int en_proceso = 1;
+    bloque = (file_desc -> byte_leido) / (256 * 32);
+    byte_de_bloque = (file_desc -> byte_leido) - (bloque * 32 * 256);
+    /////////Buscar el bloque indice
+    FILE *ptr;
+    ptr = fopen(PATH, "rb");
+    while (en_proceso) {
+      fseek(ptr, 32*256*(file_desc -> puntero_a_bloque + 12 + bloque*4), SEEK_SET);
+      ////// Buscar bloque para comenzar a leer
+      //fseek(ptr, 12 + bloque*4, SEEK_CUR);
+      unsigned char buffer[4];
+      fread(buffer, sizeof(buffer), 1, ptr);
+      bloque_para_leer = calculo_numero(buffer, 4);
+      fseek(ptr, 32*256*bloque_para_leer + byte_de_bloque, SEEK_SET);
+      //leer
+      //fseek(ptr, byte_de_bloque, SEEK_CUR);
+      unsigned char buffer[1];
+      //minimo entre nbytes, lo que queda de este archivo y lo que queda de bloque
+      //int aa = min(nbytes, )
+    //for (int i = 0; i < nbytes && i < )
+  }
     return 1;
 }
 int cr_write(crFILE* file_desc, void* buffer, int nbytes){
