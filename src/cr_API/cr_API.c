@@ -80,7 +80,7 @@ crFILE* cr_open(unsigned disk, char* filename, char* mode){
 
     if (existe == 1)
     {
-      FILE *ptr; ///Cachar que onda con esto, se deberia abrir con el path?
+      FILE *ptr;
       ptr = fopen(PATH, "rb");
 
       ////FALTA buscar el archivo
@@ -89,7 +89,12 @@ crFILE* cr_open(unsigned disk, char* filename, char* mode){
       unsigned char buffer[3];
       fread(buffer, sizeof(buffer), 1, ptr);
 
-      indice = calculo_numero(buffer, 3);
+      uint32_t num, num4;
+      // printf("num: %i\n", buffer[0]);
+      num = buffer[0] - 0x80;
+      indice = num << 16|buffer[1] << 8|buffer[2];
+      // printf("num: %i\n", num);
+      // printf("num: %i\n", indice);
 
       printf("suma: %i\n", indice);
 
@@ -99,13 +104,17 @@ crFILE* cr_open(unsigned disk, char* filename, char* mode){
       unsigned char buffer2[4];
       fread(buffer2, sizeof(buffer2), 1, ptr);
 
-      referencias = calculo_numero(buffer2, 4);
+      referencias = buffer2[0] << 24 | buffer2[1] << 16|buffer2[2] << 8|buffer2[3];
       printf("referencias %i\n", referencias);
+      // referencias = calculo_numero(buffer2, 4);
+      // printf("referencias %i\n", referencias);
 
       //tamaño
       unsigned char buffer3[8];
       fread(buffer3, sizeof(buffer3), 1, ptr);
       // int cantidad;
+
+
       cantidad = calculo_numero(buffer3, 8);
       printf("cantidad %i\n", cantidad);
 
@@ -177,7 +186,10 @@ int cr_read (crFILE* file_desc, void* buffer, int nbytes){
       unsigned char buffer[4];
       fread(buffer, sizeof(buffer), 1, ptr);
       // printf("buffer %s\n", buffer);
-      bloque_para_leer = calculo_numero(buffer, 4);
+      bloque_para_leer = buffer[0] << 24 | buffer[1] << 16|buffer[2] << 8|buffer[3];
+      printf("%i\n", bloque_para_leer);
+      // bloque_para_leer = calculo_numero(buffer, 4);
+      // printf("%i\n", bloque_para_leer);
       ///////////
 
       fseek(ptr, 32*256*bloque_para_leer + byte_de_bloque, SEEK_SET);

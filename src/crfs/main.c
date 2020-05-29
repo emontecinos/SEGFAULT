@@ -25,7 +25,7 @@ int main(int argument_count, char** arguments){
     {
       printf("NULL\n");
     }
-    cr_read(archivo, 1, 3906118);
+    cr_read(archivo, 1, 390);
 
     // cr_write(crFILE* file_desc, void* buffer, int nbytes);
 
