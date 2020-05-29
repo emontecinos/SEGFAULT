@@ -15,13 +15,13 @@ int main(int argument_count, char** arguments){
     printf("%s\n",PATH);
 
     // cr_ls(0);
-     //cr_ls(1);
+     cr_ls(1);
     //cr_ls(2);
     // cr_ls(3);
 
-    int existe;
-    existe = cr_exists(2, "yes.mp3");
-    printf("existe: %i\n", existe);
+    // int existe;
+    // existe = cr_exists(2, "yes.mp3");
+    // printf("existe: %i\n", existe);
 
     return 1;
 }

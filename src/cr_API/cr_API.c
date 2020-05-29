@@ -65,12 +65,18 @@ int cr_exists(unsigned disk, char* filename){
 
 
 void cr_ls(unsigned disk){
+
+    if (disk != 1 && disk != 2 && disk != 3 && disk != 4)
+    {
+      printf("Disco no existente\n");
+      return;
+    }
     unsigned char buffer[32];
     FILE *ptr; ///Cachar que onda con esto, se deberia abrir con el path?
 
     ptr = fopen(PATH,"rb");
 
-    fseek(ptr, 32*256*65536*disk, SEEK_SET);
+    fseek(ptr, 32*256*65536*(disk - 1), SEEK_SET);
 
     for (int i = 0; i < 256; i++)
     {
@@ -78,6 +84,10 @@ void cr_ls(unsigned disk){
 
         if(buffer[0] > 0x7f)
         {
+          uint32_t num, num4;
+          num4 = buffer[0] - 0x80;
+          num = num4 << 16 | buffer[1] << 8|buffer[2];
+          printf("puntero: %i\n", num);
           for (int j = 3; j < 32; j++)
           {
             printf("%c", buffer[j]);
