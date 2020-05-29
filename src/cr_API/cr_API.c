@@ -250,18 +250,33 @@ long int get_free_block(unsigned int puntero_indice){
     fclose(file);
     return bloque_libre;
 }
-int escribir_bloque_dir_simple(unsigned int dir_bloque_dir_simple, long int bloque_a_escribir, crFILE*file_desc){
-    // Agrega la direccion del bloque al bloque de dir simple
-    return 1;
-}
-int actualizar_bitmap(long int bloque_a_escribir,crFILE* file_desc){
-    return 1;
-}
-int escribir_bloque_indice(long int bloque_a_escribir,crFILE*file_desc){
+int escribir_bloque_dir_simple(unsigned int dir_bloque_dir_simple, long int bloque_a_escribir, crFILE*file_desc,FILE* file){
+    int bloque = (file_desc->size\8196)+1-2044;// bloque "entero" usado
+    unsigned char aux_buffer;
+    unsigned dir_a_escribir;
+    dir_a_escribir=(file_desc->puntero_a_bloque+8196-16);
+    fseek(file,dir_a_escribir,SEEK_SET);
+    fread()
+    fwrite(bloque_a_escribir);
+
     //Agrega la dir del bloque al indice
     return 1;
 }
-void actualizar_tamano_archivo(int bloques,crFILE*file_desc){
+int actualizar_bitmap(long int bloque_a_escribir,crFILE* file_desc,FILE* file){
+    return 1;
+}
+int escribir_bloque_indice(long int bloque_a_escribir,crFILE*file_desc,FILE* file){
+    int bloque = (file_desc->size \8196)+1;// bloque "entero" usado
+    unsigned dir_a_escribir;
+    dir_a_escribir=(file_desc->puntero_a_bloque)+12 + bloque;
+    fseek(file,dir_a_escribir,SEEK_SET);
+    fwrite(bloque_a_escribir);
+
+    //Agrega la dir del bloque al indice
+    return 1;
+}
+void actualizar_tamano_archivo(int bytes,crFILE*file_desc){
+    file_desc->size+=bytes;
     return;
 }
 
@@ -319,8 +334,8 @@ int cr_write(crFILE* file_desc, void* buffer, int nbytes){
                         break;//Termine de escribir el archivo
                     }
                 }
-                escribir_bloque_indice(bloque_a_escribir,file_desc);
-                actualizar_bitmap(bloque_a_escribir,file_desc);
+                escribir_bloque_indice(bloque_a_escribir,file_desc,file);
+                actualizar_bitmap(bloque_a_escribir,file_desc,file);
                 //Escribir en bloque indice dir de bloque (bloque_a_escribir)
                 //Actualizar bitmap
             }else{
@@ -348,8 +363,8 @@ int cr_write(crFILE* file_desc, void* buffer, int nbytes){
                         break;
                     }
                 }
-                escribir_bloque_dir_simple(dir_bloque_dir_simple, bloque_a_escribir,file_desc);
-                actualizar_bitmap(bloque_a_escribir,file_desc);
+                escribir_bloque_dir_simple(dir_bloque_dir_simple, bloque_a_escribir,file_desc),file;
+                actualizar_bitmap(bloque_a_escribir,file_desc,file);
                 //Escribir en bloque dir simple dir de bloque (bloque_a_escribir)
                 //Actualizar bitmap
             }else{
