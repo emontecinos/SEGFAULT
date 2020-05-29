@@ -96,7 +96,6 @@ void cr_ls(unsigned disk){
         }
     }
     fclose(ptr);
-
     return;
 }
 
