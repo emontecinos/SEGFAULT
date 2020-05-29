@@ -21,10 +21,10 @@ int cr_exists(unsigned disk, char* filename){
     if (disk == 1 || disk == 2 || disk == 3 || disk == 4)
     {
       FILE *ptr; ///Cachar que onda con esto, se deberia abrir con el path?
-      if (strchr(filename, '/') != NULL)
-      {
-      printf("aaaaaa\n");
-      }
+      // if (strchr(filename, '/') != NULL)
+      // {
+      // printf("aaaaaa\n");
+      // }
 
       ptr = fopen(PATH, "rb");
 

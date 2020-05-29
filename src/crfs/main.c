@@ -15,7 +15,7 @@ int main(int argument_count, char** arguments){
     printf("%s\n",PATH);
 
     // cr_ls(0);
-     //cr_ls(1);
+     cr_ls(1);
     //cr_ls(2);
     // cr_ls(3);
 
