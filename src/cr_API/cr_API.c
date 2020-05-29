@@ -228,25 +228,41 @@ int cr_hardlink(unsigned disk, char* orig, char* dest){
       }
     }
     fclose(ptr);
-    ptr = fopen(PATH, "rb+");
-    fseek(ptr, puntero_nuevo_link, SEEK_SET);
-    fwrite(buffer_destino, 1, 3, ptr);
-    fwrite(dest, sizeof(dest), 1, ptr);
-    fclose(ptr);
+    if(aux_puntero_nuevo == 0){
+      printf("No quedá memoria en el disco\n");
 
-    unsigned char cantidad_hardlinks[4];
-    ptr = fopen(PATH, "rb+");
-    int num = (int)buffer[0]<<24| (int)buffer[1]<<16 | (int)buffer[2]<<8 |(int)buffer[3]<<16
+      return 0;
+    }
+    else{
+      ptr = fopen(PATH, "rb+");
+      fseek(ptr, puntero_nuevo_link, SEEK_SET);
+      fwrite(buffer_destino, 1, 3, ptr);
+      fwrite(dest, sizeof(dest), 1, ptr);
+      fclose(ptr);
 
-    fseek(ptr, puntero, SEEK_SET);
-    fread(cantidad_hardlinks, sizeof(cantidad_hardlinks), 1, ptr);
-
-    printf("%d\n", cantidad_hardlinks );
-
-
+      unsigned char cantidad_hardlinks[4];
+      ptr = fopen(PATH, "rb+");
 
 
-    return 0;
+      fseek(ptr, 32*256*puntero, SEEK_SET);
+      fread(cantidad_hardlinks, sizeof(cantidad_hardlinks), 1, ptr);
+      int num = (int)cantidad_hardlinks[0]<<24| (int)cantidad_hardlinks[1]<<16 | (int)cantidad_hardlinks[2]<<8 |(int)cantidad_hardlinks[3];
+      printf("%d\n",num);
+      num += 1;
+      unsigned char bytes[4];
+      bytes[0] = (num >> 24) & 0xFF;
+      bytes[1] = (num >> 16) & 0xFF;
+      bytes[2] = (num >> 8) & 0xFF;
+      bytes[3] = num & 0xFF;
+      fseek(ptr, 32*256*puntero, SEEK_SET);
+      fwrite(bytes, sizeof(bytes), 1, ptr);
+      fseek(ptr, 32*256*puntero, SEEK_SET);
+      fread(cantidad_hardlinks, sizeof(cantidad_hardlinks), 1, ptr);
+      int nume = (int)bytes[0]<<24| (int)bytes[1]<<16 | (int)bytes[2]<<8 |(int)bytes[3];
+      printf("%d\n",nume);
+      return 1;
+    }
+
 
   }
 }
