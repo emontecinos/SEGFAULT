@@ -117,12 +117,70 @@ int cr_read (crFILE* file_desc, void* buffer, int nbytes){
 }
 int cr_write(crFILE* file_desc, void* buffer, int nbytes){
     int n_max=0;
-    if (file_desc->size+nbytes <=file_desc->max_size_bytes)n_max=nbytes;
-    else n_max=file_desc->max_size_bytes-file_desc->size;
-    for(int i=0;i<n_max;i++){
-        file_desc->bytes[file_desc->size]=buffer[i];//file_desc->pos_en_buffer quizas sirve
-        size++;
+    if (file_desc->size+nbytes <=4092*pow(2,13))n_max=nbytes;
+    else n_max=4092*pow(2,13)-file_desc->size;
+    int cant_escribir_indice=0;
+    int cant_escribir_dir_simple=0;
+    //calcular espacio libre para archivo
+    unsigned int espacio_libre_archivo=4092*pow(2,13)-file_desc->size;
+
+    //Ver si: cabe
+    if (nbytes <= espacio_libre_archivo){
+        if(file_desc->size>=2044*pow(2,13)){
+            cant_escribir_indice=0;
+        }else{
+            cant_escribir_indice=2044*pow(2,13) - file_desc->size;
+        }
+        cant_escribir_dir_simple=nbytes-cant_escribir_indice;
+    }else{
+        //No cabe en el archivo
+        if(file_desc->size>=2044*pow(2,13)){
+            cant_escribir_indice=0;
+        }else{
+            cant_escribir_indice=2044*pow(2,13) - file_desc->size;
+        }
+        cant_escribir_dir_simple= (4092*pow(2,13))-file_desc->size;
     }
+    //Seguir aqui
+    //Cuanto escribir en cada parte
+    //Si hay espacio para escribir en indice,
+    if(cant_escribir_indice>0){
+        //Escribir en indice
+    }
+    
+    if(cant_escribir_dir_simple>0){
+        //Escribir en bloque dir simple
+    }
+
+
+
+
+
+
+    
+    //Ver si cabe en dir normal (sin usar dir simple).-
+    // si cabe, -
+        // funcion para encontrar primer bloque libre
+        // guardar numero del bloque en el indice(si no esta, si estan asignados de antes solo buscar dicho bloque)
+        //guardar hasta 8192 bytes en el bloque
+        // cambiar estado del bitmap de ese bloque
+        // seguir hasta llenar
+    //Si no cabe,-
+        //llenar lo que quepa en indice
+        // para el resto, ir a la dir del bloque de ind simple
+        // calcular cuantos bloques son
+        // buscar primer bloque libre
+        //guardar en bloque encontrado
+        //Seguir hasta que se escriba todo o que se ocupen todos los bloques disponibles.
+    //Actualizar valor del tamaño del archivo y cantidad de bloques
+
+    
+
+    // Cambiar modo de almacenar
+    // for(int i=0;i<n_max;i++){
+    //     file_desc->bytes[file_desc->size]=buffer[i];//file_desc->pos_en_buffer quizas sirve
+    //     file_desc->size++;
+    // }
     return n_max;
 }
 int cr_close(crFILE* file_desc){
