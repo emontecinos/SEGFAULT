@@ -99,23 +99,17 @@ int cr_hardlink(unsigned disk, char* orig, char* dest){
 
     fseek(ptr, (disk-1)*32*256*65536, SEEK_SET);
     int aux;
+    int puntero;
+    unsigned char nombre[29];
     for (int i = 0; i < 256; i++)
     {
       unsigned char buffer[32];
       fread(buffer, sizeof(buffer), 1, ptr);
-      printf("%d\n",buffer[0] );
-      printf("%c\n", buffer[3] );
-      if (buffer[0] < 0x7f);
-      {
-        unsigned char nuevo_puntero[3];
-        buffer [0] = buffer[0] << 1;
-        memcpy(nuevo_puntero, &buffer[0], 3 * sizeof(unsigned char));
-      }
+      //printf("%c\n", buffer[3] );
       if(buffer[0] > 0x7f)
       {
-        unsigned char nombre[29];
         memcpy(nombre, &buffer[3], 29 * sizeof(unsigned char));
-        printf("%c\n", nombre[0] );
+        //printf("%c\n", nombre[0] );
         //fread(nombre, sizeof(nombre), 1, ptr);
         int j;
         //printf("Nueva palabra\n");
@@ -132,12 +126,16 @@ int cr_hardlink(unsigned disk, char* orig, char* dest){
         }
         if (aux == 1)
         {
-          printf("Puntero: %s, Nombre: %s\n", buffer, nombre );
+          buffer [0] = buffer[0] << 1;
+          int num = (int)buffer[2]| (int)buffer[1]<<8 | (int)buffer[0]<<16;
+          puntero = num;
+          printf("Puntero: %d, Nombre: %s\n", puntero, nombre );
 
         }
       }
     }
     fclose(ptr);
+    ptr = fopen(PATH, "rb+");
     return 0;
   }
 }
