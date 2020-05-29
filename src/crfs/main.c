@@ -11,7 +11,11 @@ int main(int argument_count, char** arguments){
 
     cr_mount(arguments[1]);
 
-    cr_bitmap(1,1);
+    //cr_bitmap(4,0);
+
+    // long int bloque_libre=-1;
+    // bloque_libre=get_free_block(198000);
+    // printf("\n%li\n",bloque_libre);
     // Endianness
     // int x = 1;
 

@@ -19,7 +19,7 @@ void cr_bitmap(unsigned disk, bool hex);
 int cr_exists(unsigned disk, char* filename);
 int cr_write(crFILE* file_desc, void* buffer, int nbytes);
 int cr_close(crFILE* file_desc);
-
+long int get_free_block(unsigned int puntero_indice);
 
 void cr_ls(unsigned disk);
 crFILE* cr_open(unsigned disk, char* filename, char mode);
