@@ -368,7 +368,7 @@ int cr_read (crFILE* file_desc, void* buffer, int nbytes){
         byte_de_bloque = 0;
       }
   }
-    return 1;
+    return bytes_leidos;
 }
 int cr_write(crFILE* file_desc, void* buffer, int nbytes){
     return 1;
