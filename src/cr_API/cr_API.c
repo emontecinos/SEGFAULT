@@ -7,6 +7,7 @@
 #include <unistd.h> 
 #include <fcntl.h>
 #include <math.h>
+#include <dirent.h>
 #include "cr_API.h"
 
 extern char* PATH;
@@ -198,7 +199,7 @@ int cr_read (crFILE* file_desc, void* buffer, int nbytes){
     return 1;
 }
 
-long int get_free_block(unsigned int puntero_indice){
+unsigned int get_free_block(unsigned int puntero_indice){
     int disk=0;
     int inicio=0;
     int final=0;
@@ -211,7 +212,7 @@ long int get_free_block(unsigned int puntero_indice){
         inicio=65536;
         final=131071;
     }else if(puntero_indice < 196608){
-        disk=2;
+        disk=3;
         inicio=131072;
         final=196607;
     }else{
@@ -221,7 +222,7 @@ long int get_free_block(unsigned int puntero_indice){
     }
     int byte_leido=0;
     int aux_bit;
-    long int bloque_libre=-1;;
+    unsigned int bloque_libre=-1;
     unsigned char aux_buffer;
     unsigned int bloque_inicio_rev=(disk-1)*pow(2,29)+pow(2,13);
     
@@ -250,29 +251,48 @@ long int get_free_block(unsigned int puntero_indice){
     fclose(file);
     return bloque_libre;
 }
-int escribir_bloque_dir_simple(unsigned int dir_bloque_dir_simple, long int bloque_a_escribir, crFILE*file_desc,FILE* file){
-    int bloque = (file_desc->size\8196)+1-2044;// bloque "entero" usado
+int escribir_bloque_dir_simple(unsigned int dir_bloque_dir_simple, unsigned int bloque_a_escribir, crFILE*file_desc,FILE* file){
+    int bloque = (int)(file_desc->size/8196)+1-2044;// bloque "entero" usado de dir simple
     unsigned char aux_buffer;
     unsigned dir_a_escribir;
     dir_a_escribir=(file_desc->puntero_a_bloque+8196-16);
     fseek(file,dir_a_escribir,SEEK_SET);
-    fread()
-    fwrite(bloque_a_escribir);
-
-    //Agrega la dir del bloque al indice
-    return 1;
-}
-int actualizar_bitmap(long int bloque_a_escribir,crFILE* file_desc,FILE* file){
-    return 1;
-}
-int escribir_bloque_indice(long int bloque_a_escribir,crFILE*file_desc,FILE* file){
-    int bloque = (file_desc->size \8196)+1;// bloque "entero" usado
-    unsigned dir_a_escribir;
-    dir_a_escribir=(file_desc->puntero_a_bloque)+12 + bloque;
+    fread(&aux_buffer,1,2,file);
+    dir_a_escribir=aux_buffer+bloque;
     fseek(file,dir_a_escribir,SEEK_SET);
-    fwrite(bloque_a_escribir);
-
-    //Agrega la dir del bloque al indice
+    fwrite(&bloque_a_escribir,2,1,file);
+    return 1;
+}
+int actualizar_bitmap(unsigned int bloque_a_escribir,crFILE* file_desc,FILE* file){
+    int disk=0;
+    if (bloque_a_escribir < 65536){
+        disk=1;
+    }else if(bloque_a_escribir < 131072){
+        disk=2;
+    }else if(bloque_a_escribir < 196608){
+        disk=3;
+    }else{
+        disk=4;
+    }
+    unsigned int byte_escritura;
+    unsigned int byte_lectura;
+    int byte_actualizado;
+    byte_escritura=(disk-1)*pow(2,29)+pow(2,13) + (int)bloque_a_escribir/8;
+    fseek(file,byte_escritura,SEEK_SET);
+    fread(&byte_lectura,1,1,file);
+    byte_actualizado=byte_lectura|(int)pow(2,bloque_a_escribir%8);
+    fseek(file,-1,SEEK_CUR);
+    fwrite(&byte_actualizado,1,1,file);
+    return 1;
+}
+int escribir_bloque_indice(unsigned int bloque_a_escribir,crFILE*file_desc,FILE* file){
+    int bloque = (int)(file_desc->size /8196)+1;// bloque "entero" usado
+    unsigned int dir_a_escribir;
+    dir_a_escribir=file_desc->puntero_a_bloque+12 + bloque;
+    fseek(file,dir_a_escribir,SEEK_SET);
+    // unsigned char* b_a_e;
+    // b_a_e=(unsigned char *) bloque_a_escribir;
+    fwrite(&bloque_a_escribir,2,1,file);
     return 1;
 }
 void actualizar_tamano_archivo(int bytes,crFILE*file_desc){
@@ -318,7 +338,7 @@ int cr_write(crFILE* file_desc, void* buffer, int nbytes){
         //Bytes a escbirir
         
         while (escritos_indice<cant_escribir_indice){
-            long int bloque_a_escribir=get_free_block(file_desc->puntero_a_bloque);
+            unsigned int bloque_a_escribir=get_free_block(file_desc->puntero_a_bloque);
             //Si puedo escribir
             if(bloque_a_escribir!=-1){
                 //Escribir en cada byte del bloque
@@ -348,7 +368,7 @@ int cr_write(crFILE* file_desc, void* buffer, int nbytes){
         //Escribir en bloque dir simple
         unsigned int dir_bloque_dir_simple=file_desc->puntero_a_bloque+8188;//pos del bloque de dir simple; 8192-4
         while(escritos_simple<cant_escribir_dir_simple){
-            long int bloque_a_escribir=get_free_block(file_desc->puntero_a_bloque);//Dentro de la partición; rango de disk
+            unsigned int bloque_a_escribir=get_free_block(file_desc->puntero_a_bloque);//Dentro de la partición; rango de disk
             if(bloque_a_escribir!=-1){
                 fseek(file,bloque_a_escribir*8192,SEEK_SET);
                 //Escribir el bloque
@@ -363,7 +383,7 @@ int cr_write(crFILE* file_desc, void* buffer, int nbytes){
                         break;
                     }
                 }
-                escribir_bloque_dir_simple(dir_bloque_dir_simple, bloque_a_escribir,file_desc),file;
+                escribir_bloque_dir_simple(dir_bloque_dir_simple, bloque_a_escribir,file_desc,file);
                 actualizar_bitmap(bloque_a_escribir,file_desc,file);
                 //Escribir en bloque dir simple dir de bloque (bloque_a_escribir)
                 //Actualizar bitmap
@@ -374,29 +394,6 @@ int cr_write(crFILE* file_desc, void* buffer, int nbytes){
     }
     //Si se escribe se actualiza
     if(escritos_simple+escritos_indice>0) actualizar_tamano_archivo(escritos_simple+escritos_indice,file_desc);
-
-
-
-
-
-
-
-    
-    //Ver si cabe en dir normal (sin usar dir simple).-
-    // si cabe, -
-        // funcion para encontrar primer bloque libre
-        // guardar numero del bloque en el indice(si no esta, si estan asignados de antes solo buscar dicho bloque)
-        //guardar hasta 8192 bytes en el bloque
-        // cambiar estado del bitmap de ese bloque
-        // seguir hasta llenar
-    //Si no cabe,-
-        //llenar lo que quepa en indice
-        // para el resto, ir a la dir del bloque de ind simple
-        // calcular cuantos bloques son
-        // buscar primer bloque libre
-        //guardar en bloque encontrado
-        //Seguir hasta que se escriba todo o que se ocupen todos los bloques disponibles.
-    //Actualizar valor del tamaño del archivo
 
     free(byte_buffer);
     return escritos_indice+escritos_simple;
@@ -414,9 +411,256 @@ int cr_hardlink(unsigned disk, char* orig, char* dest){
 int cr_softlink(unsigned disk_orig, unsigned disk_dest, char* orig, char* dest){
     return 1;
 }
-int cr_unload(unsigned disk, char* orig, char* dest){
-    return 1;
+unsigned get_files(char** file_names, unsigned long* file_pointers, unsigned total, unsigned long disk_start)
+{
+    FILE* file = fopen("disk/simdiskfilled.bin","rb");
+    unsigned int disk_chelo_start;
+    disk_chelo_start=disk_start;
+    fprintf(stderr,"\n\t Numeros\n\t%lu,%u\n",disk_start,disk_chelo_start);
+    fseek(file, disk_chelo_start, SEEK_SET); 
+    // fseek(file, disk_start, SEEK_SET);    
+
+    unsigned char aux;
+    unsigned char splited_pointer[3];
+    unsigned long pointer = 0;
+    int validity;
+    char name[29];
+
+    for (int i = 0; i < max_files; i++)
+    {
+        pointer  = 0;
+        aux      = getc(file);
+        validity = aux >> 7;
+        splited_pointer[0] = aux & 127;  //127 = 01111111
+        splited_pointer[1] = getc(file);
+        splited_pointer[2] = getc(file);
+
+        for (int j = 0; j < 29; j++){
+            name[j] =  getc(file);}
+
+        if (validity == 1)
+        {   
+            pointer = pointer | (unsigned long) splited_pointer[0] << 8*2;
+            pointer = pointer | (unsigned long) splited_pointer[1] << 8*1;
+            pointer = pointer | (unsigned long) splited_pointer[2];
+            
+            strcpy(file_names[i], name);
+            file_pointers[i] = pointer;
+            total++;
+        }
+    }
+
+    fclose(file);
+    return total;
 }
+
+void read_write_data_block(unsigned long pointer, FILE* file, FILE* file_copy, unsigned long used, unsigned long leftover, int offset)
+{
+    char byte;
+    unsigned long bytes_used, data_pointer;
+
+    printf("used %lu leftover %lu\n ", used, leftover);
+
+    for (int i = 0; i < used; i++)
+    {
+        bytes_used   = block_size;
+        data_pointer = 0;
+
+        fseek(file, pointer * block_size + offset + 4*i, SEEK_SET);
+
+        for (int j = 3; j > -1; j--){
+            data_pointer = data_pointer | (unsigned long) getc(file) << 8*j;}
+
+        fseek(file, data_pointer * block_size, SEEK_SET);
+        
+        if (i == used - 1 & leftover != 0){
+            bytes_used =  leftover;}
+
+        for (int j = 0; j < bytes_used; j++)
+        {     
+            byte = getc(file);
+            fwrite(&byte, 1, sizeof(char), file_copy);
+        }
+    }
+}
+
+void write_file(char* name, unsigned long pointer, char* dest)
+{
+    FILE* file = fopen("disk/simdiskfilled.bin","rb");
+    
+    fseek(file, pointer * block_size + 4, SEEK_SET);    
+    unsigned long size = 0;
+
+    for (int i = 7; -1 < i; i--){
+            size = size | (unsigned long) getc(file) << 8*i;}
+
+    unsigned long module      = size % block_size;
+    unsigned long leftover      = (module == 0) ? block_size : module;
+    unsigned long blocks_used   = (module == 0) ? size / block_size : (size - module) / block_size + 1;
+    unsigned long direct_used   = (blocks_used > 2044) ? 2044 : blocks_used;
+    unsigned long indirect_used = (blocks_used - direct_used > 0) ? blocks_used - direct_used : 0;
+
+    char dest_name[250];
+    strcpy(dest_name, dest);
+    strcat(dest_name, "/");
+    strcat(dest_name, name);
+
+    FILE* file_copy = fopen(dest_name,"wb");
+
+    unsigned long leftover_direct = (direct_used == 2044) ? block_size : leftover;
+
+    read_write_data_block(pointer, file, file_copy, direct_used, leftover_direct, 12);
+
+    unsigned long indirect_pointer = 0;
+    fseek(file, 8176, SEEK_CUR);
+
+    for (int i = 3; i > -1; i--){
+        indirect_pointer = indirect_pointer | (unsigned long) getc(file) << 8*i;}
+
+    read_write_data_block(indirect_pointer, file, file_copy, indirect_used, leftover, 0);
+
+    fclose(file_copy);
+    fclose(file);
+}
+
+void transfer_files(unsigned disk_start, char* orig, char* dest)
+{   
+    char **file_names = malloc(max_files * sizeof(char*));
+    for (int i = 0; i < max_files; i++){
+        file_names[i] = malloc(29 * sizeof(char)); }
+    
+    unsigned long *file_pointers = malloc(max_files * sizeof(unsigned long));
+    unsigned total = 0;
+    total = get_files(file_names, file_pointers, total, disk_start);
+
+    for (int i = 0; i < total; i++)
+    {   
+        if (orig == NULL){
+            write_file(file_names[i], file_pointers[i], dest);}   
+
+        else if (strcmp(orig, file_names[i]) == 0){
+            write_file(file_names[i], file_pointers[i], dest);}    
+    }
+
+    for (int i = 0; i < max_files; i++){ 
+        free(file_names[i]);}
+    free(file_names);
+    free(file_pointers);
+}
+
+int cr_unload(unsigned disk, char* orig, char* dest){
+    if (disk != 0)
+    {   
+        unsigned long disk_start = (disk - 1) * n_blocks_part * block_size;
+        transfer_files(disk_start, orig, dest);
+    }
+
+    else
+    {   
+        for (int i = 0; i < 4; i++){
+            transfer_files(n_blocks_part * i, orig, dest);}
+    }
+    
+    return 0;
+}
+
+// int cr_load(unsinged disk, char* orig). 
+// Función que se encarga de copiar un archivo o los
+// contenidos de una carpeta, referenciado por orig a la partición designada. 
+// En caso de que un archivo sea
+// demasiado pesado para el disco, se debe escribir todo lo posible hasta 
+// acabar el espacio disponible. En caso de
+// que el sea una carpeta, se deben copiar los archivos que estén dentro de 
+// esta carpeta, ignorando cualquier carpeta
+// adicional que tenga.
+
+int is_file(char* string)
+{   
+    char dot = 46;
+    int has_dot = 0, has_char = 0, i = 0;
+
+    while(string[i] != '\0')
+    {
+        if(string[i] == dot){
+            has_dot = 1;}
+
+        else if (!has_dot){
+            has_char = 1;}
+        i++;
+    }
+
+    return (has_dot & has_char);
+}
+
+void load_write_file(unsigned disk, char* filename)
+{
+    FILE* file = fopen(filename, "rb");
+
+    fseek(file, 0, SEEK_END);
+    unsigned size = ftell(file);
+    printf("size of %s is %u\n", filename, size);
+
+    size = (size > max_file_size) ? max_file_size : size;
+    fprintf(stderr,"imprimir");
+    crFILE* cr_file = cr_open(disk, filename, 'w');
+    fprintf(stderr,"imprimir1");
+
+    unsigned char* buffer = malloc(block_size * sizeof(char));    
+    
+    unsigned bytes_used  = block_size;
+    unsigned module      = size % block_size;
+    unsigned leftover    = (module == 0) ? block_size : module;
+    unsigned blocks_used = (module == 0) ? size / block_size : (size - module)/ block_size + 1;
+    
+
+    for (int i = 0; i < blocks_used; i++)
+    {
+        if (i == blocks_used - 1){
+            bytes_used = leftover;}
+
+        for (int j = 0; j < bytes_used; i++){
+            buffer[j] = getc(file);}
+        fprintf(stderr,"imprimir2");
+        cr_write(cr_file, buffer, bytes_used);
+    }    
+
+    free(buffer);
+    fclose(file);    
+    cr_close(cr_file);
+
+}
+
 int cr_load(unsigned disk, char* orig){
-    return 1;
+    if (is_file(orig))
+        {
+            load_write_file(disk, orig);
+        }
+
+    else  // cógigo para leer directorios sacado de internet
+    {
+        DIR *dp;
+        struct dirent *ep;     
+        dp = opendir (orig);
+
+        if (dp != NULL)
+        {
+            while (ep = readdir (dp))
+            {
+                if (is_file(ep -> d_name))
+                {
+                    char dir[80];
+                    strcpy(dir, orig);
+                    strcat(dir, ep -> d_name);
+                    printf("%s\n", dir);
+                    load_write_file(disk, dir);
+                }
+            }                
+            (void) closedir (dp);
+
+        }
+        else
+            perror ("Directorio incorrecto");
+
+    }
+    return 0;
 }

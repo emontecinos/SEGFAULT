@@ -10,6 +10,9 @@ int main(int argument_count, char** arguments){
     // printf("%s\n",ROUTE);
 
     cr_mount(arguments[1]);
+    cr_unload(1, "guides.txt", "C:/Users/felipe/Desktop/Archivos");
+    //cr_load(1, "lala.txt");
+    //cr_ls(1);
 
     //cr_bitmap(4,0);
 
