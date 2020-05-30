@@ -15,6 +15,9 @@ typedef struct crFILE
     int puntero_a_bloque;
     int cant_hardlinks;
     char* modo;
+    int cant_bloques;
+    int existe;
+    int byte_leido;
     int max_size_bytes;
     int pos_en_array;
 
@@ -28,7 +31,7 @@ int cr_write(crFILE* file_desc, void* buffer, int nbytes);
 int cr_close(crFILE* file_desc);
 
 void cr_ls(unsigned disk);
-crFILE* cr_open(unsigned disk, char* filename, char mode);
+crFILE* cr_open(unsigned disk, char* filename, char* mode);
 int cr_read (crFILE* file_desc, void* buffer, int nbytes);
 
 
