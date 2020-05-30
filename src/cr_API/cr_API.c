@@ -162,7 +162,112 @@ int cr_close(crFILE* file_desc){
     return 1;
 }
 int cr_rm(unsigned disk, char* filename){
+  if(cr_exists(disk, filename)){
+    printf("%s\n", filename );
+    printf("True\n");
+    FILE *ptr;
+    if (strchr(filename, '/') != NULL)
+    {
+    printf("aaaaaa\n");
+    }
+
+    ptr = fopen(PATH, "rb");
+
+    fseek(ptr, (disk-1)*32*256*65536, SEEK_SET);
+    int aux;
+    int puntero;
+    int aux_puntero_vaciar = 0;
+    uint32_t puntero_vaciar = (disk-1)*32*256*65536;
+    unsigned char nombre[29];
+    unsigned char buffer[32];
+    unsigned char buffer_destino[3];
+    for (int i = 0; i < 256; i++)
+    {
+
+      fread(buffer, sizeof(buffer), 1, ptr);
+      //printf("%c\n", buffer[3] );
+      if(buffer[0] > 0x7f)
+      {
+        memcpy(nombre, &buffer[3], 29 * sizeof(unsigned char));
+        //printf("%c\n", nombre[0] );
+        //fread(nombre, sizeof(nombre), 1, ptr);
+        int j;
+        //printf("Nueva palabra\n");
+        for (j = 0; nombre[j] || filename[j]; j++)
+        {
+          //printf("%c\n", orig[j] );
+          //printf("%c\n", nombre[j]);
+          aux = 1;
+          if (nombre[j] != filename[j])
+          {
+            aux = 0;
+            break;
+          }
+        }
+        if (aux == 1)
+        {
+          buffer_destino[0] = buffer [0];
+          buffer_destino[1] = buffer [1];
+          buffer_destino[2] = buffer [2];
+          buffer [0] = buffer[0]&127;
+          int num = (int)buffer[0]<<16| (int)buffer[1]<<8 | (int)buffer[2];
+          puntero = num;
+          printf("Puntero: %d, Nombre: %s\n", puntero, nombre);
+          aux_puntero_vaciar = 1;
+          break;
+
+        }
+        if(aux_puntero_vaciar == 0){
+          puntero_vaciar += 32;
+        }
+      }
+      else if (buffer[0] <=  0x7f && aux_puntero_vaciar == 0){
+        puntero_vaciar += 32;
+      }
+    }
+    fclose(ptr);
+
+
+    ptr = fopen(PATH, "rb+");
+    fseek(ptr, puntero_vaciar, SEEK_SET);
+    unsigned char buffer_vacio[32];
+    int i;
+    for ( i= 0; i<32; i++){
+      buffer_vacio[i] = 0;
+    }
+    fwrite(buffer_vacio, sizeof(buffer_vacio), 1, ptr);
+
+    unsigned char cantidad_hardlinks[4];
+    fseek(ptr, 32*256*puntero, SEEK_SET);
+    fread(cantidad_hardlinks, sizeof(cantidad_hardlinks), 1, ptr);
+    int num = (int)cantidad_hardlinks[0]<<24| (int)cantidad_hardlinks[1]<<16 | (int)cantidad_hardlinks[2]<<8 |(int)cantidad_hardlinks[3];
+    printf("%d\n",num);
+    num -= 1;
+    unsigned char bytes[4];
+    bytes[0] = (num >> 24) & 0xFF;
+    bytes[1] = (num >> 16) & 0xFF;
+    bytes[2] = (num >> 8) & 0xFF;
+    bytes[3] = num & 0xFF;
+    fseek(ptr, 32*256*puntero, SEEK_SET);
+    fwrite(bytes, sizeof(bytes), 1, ptr);
+    fseek(ptr, 32*256*puntero, SEEK_SET);
+    fread(cantidad_hardlinks, sizeof(cantidad_hardlinks), 1, ptr);
+    int nume = (int)bytes[0]<<24| (int)bytes[1]<<16 | (int)bytes[2]<<8 |(int)bytes[3];
+    printf("%d\n",nume);
+    if(num == 0){
+
+    }
+
+
+
+
+    fclose(ptr);
     return 1;
+  }
+  else{
+    printf("El archivo %s no existe.\n", filename);
+    return 1;
+  }
 }
 int cr_hardlink(unsigned disk, char* orig, char* dest){
   if(cr_exists(disk, orig)){
