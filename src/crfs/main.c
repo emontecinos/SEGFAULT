@@ -21,14 +21,14 @@ int main(int argument_count, char** arguments){
     // cr_ls(ROUTE);
 
     crFILE* archivo;
-    archivo = cr_open(1, "guides.txt", "r");
+    archivo = cr_open(4, "1/Baroque.mp3", "r");
     if (archivo == NULL)
     {
       printf("NULL\n");
     }
     free(archivo);
-    unsigned char buffer[32];
-    cr_read(archivo, buffer, 32);
+    // unsigned char buffer[32];
+    // cr_read(archivo, buffer, 32);
 
     // cr_write(crFILE* file_desc, void* buffer, int nbytes);
 

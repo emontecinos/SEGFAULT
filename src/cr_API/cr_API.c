@@ -100,7 +100,7 @@ int cr_exists(unsigned disk, char* filename){
   }
 else
 {
-  return -1;
+  return 0;
 }
 }
 
@@ -108,12 +108,27 @@ void cr_ls(unsigned disk){
     return;
 }
 crFILE* cr_open(unsigned disk, char* filename, char* mode)
-{
+  {
     if (disk != 1 && disk != 2 && disk != 3 && disk != 4)
       {
         printf("Disco no existente\n");
         return NULL;
       }
+
+    if (strchr(filename, '/') != NULL)
+    {
+      char disco[1];
+      strncpy(disco, filename, 1);
+      printf("%c\n", disco[0]);
+
+      char* nombre_link = filename + 2;
+      //memmove(contents, contents+1, 4);
+      printf("cont %s\n", nombre_link);
+
+      crFILE* archivo;
+      archivo = cr_open(atoi(&disco[0]), nombre_link, "r");
+      return archivo;
+    }
 
 
     if (strncmp(mode, "r", 2) != 0 && strncmp(mode, "w", 2) != 0)
@@ -240,7 +255,6 @@ crFILE* cr_open(unsigned disk, char* filename, char* mode)
             num = buffer_directorio[0] - 0x80;
             puntero = num << 16|buffer_directorio[1] << 8|buffer_directorio[2];
             printf("puntero: %i\n", puntero);
-            //puntero = i;
             break;
           }
         }
@@ -248,21 +262,16 @@ crFILE* cr_open(unsigned disk, char* filename, char* mode)
       printf("puntero: %i\n", puntero);
 
       fseek(ptr, 32*256*puntero, SEEK_SET); //bloque indice
-
       ///referencias
       unsigned char buffer2[4];
       fread(buffer2, sizeof(buffer2), 1, ptr);
 
       referencias = buffer2[0] << 24 | buffer2[1] << 16|buffer2[2] << 8|buffer2[3];
       printf("referencias %i\n", referencias);
-      // referencias = calculo_numero(buffer2, 4);
-      // printf("referencias %i\n", referencias);
 
       //tamaño
       unsigned char buffer3[8];
       fread(buffer3, sizeof(buffer3), 1, ptr);
-      // int cantidad;
-
 
       cantidad = calculo_numero(buffer3, 8);
       printf("cantidad %i\n", cantidad);
@@ -276,7 +285,6 @@ crFILE* cr_open(unsigned disk, char* filename, char* mode)
 
       fclose(ptr);
     }
-    // printf("puntero: %i\n", puntero);
 
     else
     {
@@ -289,7 +297,6 @@ crFILE* cr_open(unsigned disk, char* filename, char* mode)
     crfile -> size = cantidad;
     crfile -> nombre = filename;
     crfile -> puntero_a_bloque = puntero;
-    printf("crfile -> puntero_a_bloque %i\n", crfile -> puntero_a_bloque);
     crfile -> cant_hardlinks = referencias;
     crfile -> cant_bloques = porte;
     crfile -> modo = mode;
@@ -368,7 +375,7 @@ int cr_read (crFILE* file_desc, void* buffer, int nbytes){
         byte_de_bloque = 0;
       }
   }
-    return bytes_leidos;
+    return 0;
 }
 int cr_write(crFILE* file_desc, void* buffer, int nbytes){
     return 1;
@@ -400,26 +407,17 @@ int calculo_numero(unsigned char buffer[], int iii)
   int suma = 0;
   int bloque = 0;
   unsigned char b;
-
   for (int i = 0; i < iii; i++)
   {
     b = buffer[i];
-    //printf("%c", b);
     for(int j = 0; j < 8; j++)
     {
-      //bloque += (23 - 8*i)
       bloque = (8*iii - 8*i - 1) - (j);
-      // printf("bloque %i\n", bloque);
-      // printf("%d\n", (b>>(7-j))&1);
       if ((b>>(7-j)&1) == 1 && bloque < 23)
       {
-        // printf("%i\n", bloque);
-        // printf("........\n");
         suma += pow(2, bloque); ///este es el bloque que necesita.
-        //suma += 1;
         }
       }
-      // printf("\n");
   }
   return suma;
 }
