@@ -21,7 +21,7 @@ int main(int argument_count, char** arguments){
     // cr_ls(ROUTE);
 
     crFILE* archivo;
-    archivo = cr_open(1, "text.txt", "r");
+    archivo = cr_open(1, "text.txt", "w");
     if (archivo == NULL)
     {
       printf("NULL\n");

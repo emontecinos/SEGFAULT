@@ -135,16 +135,12 @@ crFILE* cr_open(unsigned disk, char* filename, char* mode){
       {
         // printf("nnnnnn\n");
         int buscando = 1;
-        printf("%d\n", buscando);
         int copia = 1;
-        printf("%d\n", buscando);
         while(buscando)
         {
-          printf("%d\n", buscando);
           char str[29];
           char* nuevo_nombre = filename;
           int largo = (sizeof(nuevo_nombre) / sizeof(nuevo_nombre[0]));
-          printf("%i\n", largo + copia/10 + 1);
           if (largo + copia/10 + 1 >= 28)
           {
             printf("Nombre no disponible\n");
@@ -155,7 +151,6 @@ crFILE* cr_open(unsigned disk, char* filename, char* mode){
           //printf("%s\n", str);
           if (cr_exists(disk, str) == 0)
           {
-            printf("aaaa\n");
             filename = str;
             buscando = 0;
             printf("%s\n", filename);
@@ -167,67 +162,43 @@ crFILE* cr_open(unsigned disk, char* filename, char* mode){
       FILE *ptr;
       ptr = fopen(PATH, "rb");
       /// ver bloque disponible en bitmap
-      unsigned char buff[2];
+      unsigned char buff[1];
       uint32_t num;
       fseek(ptr, 32*256*65536*(disk - 1) + 8192, SEEK_SET);
-      printf("aaa\n");
       int bloque_indice = 0;
       int i = 0;
       int encontrado = 1;
       while(encontrado)
       {
-        printf("i: %i\n", i);
-
         if (i == 8192) //no hay espacio en bitmap
         {
           printf("No se pueden agregar mas archivos a disco\n");
           return NULL;
         }
         fread(buff, sizeof(buff), 1, ptr);
-        if (buff[1] < 0xFF)
+        if (buff[0] < 0xFF)
         {
-          printf("hay espacio\n");
-          //Falta chequear esto
-          int indice_bloque;
-          unsigned char aux_buffer;
+
           int inicio = (disk - 1)*65536;
-          for(int j = 7; j >= 0; j--)
-          {
-            indice_bloque = aux_buffer&(int)pow(2,j);
-            if(indice_bloque == 0)
-              {
-                bloque_indice = inicio + 7 - j;
-                encontrado = 0;
-                break;
-              }
+
+            unsigned char b = buff[0]; // replace with whatever you've read out of your file
+            for(int j = 0; j < 8; j++)
+            {
+                // printf("%d", (b>>(7 - j))&1);
+                if (((b>>(7 - j))&1) == 0)
+                {
+                  bloque_indice = i*8 + j + inicio;
+                  encontrado = 0;
+                  break;
+                }
             }
       }
       i++;
     }
-      ///Falta Cuando se tenga bloque indice, hay que agregar en directorio.
-
       puntero = bloque_indice;
       referencias = 0;
       porte = 0;
       cantidad = 0;
-
-      /// agregarlo al directorio
-
-      // unsigned char bufff[32];
-      fseek(ptr, 32*256*65536*(disk - 1), SEEK_SET);
-      //
-      for(int i = 0; i <= 256; i++)
-      {
-        if (i == 256) //no hay espacio en directorio
-        {
-          printf("No se pueden agregar mas archivos a disco\n");
-          return NULL;
-        }
-        // if(buff[0] < 0x80)
-        // {
-        //   ///escribir nombre
-        // }
-      }
     }
 
     else if(strncmp(mode, "r", 2) == 0)
