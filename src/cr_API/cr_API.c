@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <sys/types.h>
-#include <unistd.h> 
+#include <unistd.h>
 #include <fcntl.h>
 #include "cr_API.h"
 #include <string.h>
@@ -33,13 +33,13 @@ void cr_bitmap(unsigned disk, bool hex){
     for (i=0; i < 16 && (c=getc(file))!=EOF; i++){
         fprintf(stderr,"%02X",c&0xff);
         fprintf(stderr," ");
-        
-        
+
+
     }
     printf("\ni %d\n",i);
 
-    
-    
+
+
     // printf("Marc1\n");
     // fflush(stdout);
     // fread(buff,size_block,1,file);
@@ -96,7 +96,8 @@ int cr_exists(unsigned disk, char* filename){
     }
   else
   {
-    return -1;
+    printf("Disco no existente\n");
+    return 0;
   }
 }
 
