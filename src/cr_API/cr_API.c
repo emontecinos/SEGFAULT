@@ -231,7 +231,7 @@ int cr_hardlink(unsigned disk, char* orig, char* dest){
     if(aux_puntero_nuevo == 0){
       printf("No quedá memoria en el disco\n");
 
-      return 0;
+      return 1;
     }
     else{
       ptr = fopen(PATH, "rb+");
@@ -262,12 +262,114 @@ int cr_hardlink(unsigned disk, char* orig, char* dest){
       printf("%d\n",nume);
       return 1;
     }
-
-
+  }
+  else{
+    printf("El archivo %s no existe\n", orig);
+    return 1;
   }
 }
 int cr_softlink(unsigned disk_orig, unsigned disk_dest, char* orig, char* dest){
+  if(cr_exists(disk_orig, orig)){
+    printf("%s\n", orig );
+    printf("True\n");
+    FILE *ptr;
+    if (strchr(orig, '/') != NULL)
+    {
+    printf("aaaaaa\n");
+    }
+
+    ptr = fopen(PATH, "rb");
+
+    fseek(ptr, (disk_orig-1)*32*256*65536, SEEK_SET);
+    int aux;
+    int puntero;
+    int aux_puntero_nuevo = 0;
+    uint32_t puntero_nuevo_link = (disk_orig-1)*32*256*65536;
+    unsigned char nombre[29];
+    unsigned char buffer[32];
+    unsigned char buffer_destino[3];
+    for (int i = 0; i < 256; i++)
+    {
+
+      fread(buffer, sizeof(buffer), 1, ptr);
+      //printf("%c\n", buffer[3] );
+      if(buffer[0] > 0x7f)
+      {
+        memcpy(nombre, &buffer[3], 29 * sizeof(unsigned char));
+        //printf("%c\n", nombre[0] );
+        //fread(nombre, sizeof(nombre), 1, ptr);
+        int j;
+        //printf("Nueva palabra\n");
+        for (j = 0; nombre[j] || orig[j]; j++)
+        {
+          //printf("%c\n", orig[j] );
+          //printf("%c\n", nombre[j]);
+          aux = 1;
+          if (nombre[j] != orig[j])
+          {
+            aux = 0;
+            break;
+          }
+        }
+        if (aux == 1)
+        {
+          if(aux_puntero_nuevo == 0){
+            aux_puntero_nuevo = 1;
+            printf("%d\n", puntero_nuevo_link);
+          }
+
+        }
+        if(aux_puntero_nuevo == 0){
+          puntero_nuevo_link += 32;
+        }
+
+      }
+      else if (buffer[0] <=  0x7f && aux_puntero_nuevo == 0){
+
+        puntero_nuevo_link += 32;
+      }
+    }
+    printf("%d\n", puntero_nuevo_link);
+    fclose(ptr);
+    ptr = fopen(PATH, "rb+");
+    fseek(ptr, puntero_nuevo_link, SEEK_SET);
+    char str_dest[50];
+    printf("Holaaa\n");
+    sprintf(str_dest, "%d", disk_orig);
+    strcat(str_dest, "/");
+    strcat(str_dest, dest);
+    printf("%s\n", str_dest );
+    fseek(ptr, (disk_dest-1)*32*256*65536, SEEK_SET);
+    unsigned char buffer2[32];
+    int aux2 = 0;
+    int contador = (disk_dest-1)*32*256*65536;
+    for (int i = 0; i < 256; i++)
+    {
+      fread(buffer2, sizeof(buffer2), 1, ptr);
+      //printf("%c\n", buffer[3] );
+      if(buffer2[0] <= 0x7f && aux2 == 0){
+        aux2 = 1;
+        break;
+      }
+      else{
+        contador += 32;
+      }
+    }
+    fseek(ptr, contador, SEEK_SET);
+    unsigned char bytes[3];
+    bytes[0] = (puntero_nuevo_link >> 16) & 0xFF;
+    bytes[1] = (puntero_nuevo_link >> 8) & 0xFF;
+    bytes[2] = (puntero_nuevo_link) & 0xFF;
+    bytes[0] = bytes[0]|128;
+    fwrite(bytes, sizeof(bytes), 1, ptr);
+    fwrite(str_dest, sizeof(str_dest), 1, ptr);
+    fclose(ptr);
     return 1;
+  }
+  else{
+    printf("El archivo %s no existe\n", orig);
+    return 1;
+  }
 }
 int cr_unload(unsigned disk, char* orig, char* dest){
     return 1;

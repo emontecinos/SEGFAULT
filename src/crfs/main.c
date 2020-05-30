@@ -33,9 +33,10 @@ int main(int argument_count, char** arguments){
 
     // cr_rm(ROUTE, char* filename);
 
-    cr_hardlink(1, "Baroque.mp3", "dest4.mp3");
+    //cr_hardlink(1, "Baroque", "dest4.mp3");
 
-    // cr_softlink(unsigned disk_orig, unsigned disk_dest, char* orig, char* dest);
+    cr_softlink(1, 4, "guides.txt", "guides.txt");
+    cr_ls(4);
 
     // cr_unload(ROUTE, char* orig, char* dest);
 
