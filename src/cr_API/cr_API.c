@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <string.h>
 #include "cr_API.h"
 
 #include <math.h>
@@ -114,7 +115,8 @@ crFILE* cr_open(unsigned disk, char* filename, char* mode){
         return NULL;
       }
 
-    if (mode != "r" && mode != "w")
+
+    if (strncmp(mode, "r", 2) != 0 && strncmp(mode, "w", 2) != 0)
     {
       printf("modo no valido\n");
       return NULL;
@@ -127,11 +129,11 @@ crFILE* cr_open(unsigned disk, char* filename, char* mode){
     int cantidad;
 
     /////
-    if (mode == "w")
+    if (strncmp(mode, "w", 2) == 0)
     {
       if (existe == 1)
       {
-        printf("nnnnnn\n");
+        // printf("nnnnnn\n");
         int buscando = 1;
         printf("%d\n", buscando);
         int copia = 1;
@@ -170,7 +172,9 @@ crFILE* cr_open(unsigned disk, char* filename, char* mode){
       fseek(ptr, 32*256*65536*(disk - 1) + 8192, SEEK_SET);
       printf("aaa\n");
       int bloque_indice = 0;
-      for (int i = 0; i <= 8; i++)
+      int i = 0;
+      int encontrado = 1;
+      while(encontrado)
       {
         printf("i: %i\n", i);
 
@@ -183,21 +187,22 @@ crFILE* cr_open(unsigned disk, char* filename, char* mode){
         if (buff[1] < 0xFF)
         {
           printf("hay espacio\n");
-
           //Falta chequear esto
           int indice_bloque;
-          for(int j = 7; j >= 0; j--){
-              indice_bloque = aux_buffer&(int)pow(2,j);
-              if(indice_bloque == 0)
+          unsigned char aux_buffer;
+          int inicio = (disk - 1)*65536;
+          for(int j = 7; j >= 0; j--)
+          {
+            indice_bloque = aux_buffer&(int)pow(2,j);
+            if(indice_bloque == 0)
               {
-                  bloque_indice = inicio + 7 - j;
-                }
+                bloque_indice = inicio + 7 - j;
+                encontrado = 0;
+                break;
               }
-
-        printf("\n");
-        // num = buff[0];
-        // printf("%i\n", num);
+            }
       }
+      i++;
     }
       ///Falta Cuando se tenga bloque indice, hay que agregar en directorio.
 
@@ -206,30 +211,26 @@ crFILE* cr_open(unsigned disk, char* filename, char* mode){
       porte = 0;
       cantidad = 0;
 
-      //uint32_t num, num4;
-      //   // printf("num: %i\n", buffer[0]);
-      //   num = buffer[0] - 0x80;
-
       /// agregarlo al directorio
 
       // unsigned char bufff[32];
-      // fseek(ptr, 32*256*65536*(disk - 1), SEEK_SET);
+      fseek(ptr, 32*256*65536*(disk - 1), SEEK_SET);
       //
-      // for(int i = 0; i <= 256; i++)
-      // {
-      //   if (i == 256) //no hay espacio en directorio
-      //   {
-      //     printf("No se pueden agregar mas archivos a disco\n");
-      //     return NULL;
-      //   }
-      //   // if(buff[0] < 0x80)
-      //   // {
-      //   //   ///escribir nombre
-      //   // }
-      // }
+      for(int i = 0; i <= 256; i++)
+      {
+        if (i == 256) //no hay espacio en directorio
+        {
+          printf("No se pueden agregar mas archivos a disco\n");
+          return NULL;
+        }
+        // if(buff[0] < 0x80)
+        // {
+        //   ///escribir nombre
+        // }
+      }
     }
 
-    else if(mode == "r")
+    else if(strncmp(mode, "r", 2) == 0)
     {
       if (existe == 0)
       {
@@ -239,7 +240,6 @@ crFILE* cr_open(unsigned disk, char* filename, char* mode){
 
       FILE *ptr;
       ptr = fopen(PATH, "rb");
-
 
       int aux; //ver si hay forma de que no sea esto necesario
       unsigned char buffer_directorio[32];

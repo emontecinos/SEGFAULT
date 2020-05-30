@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+
 #include "../cr_API/cr_API.h"
 
 extern char* PATH;
@@ -25,6 +26,7 @@ int main(int argument_count, char** arguments){
     {
       printf("NULL\n");
     }
+    free(archivo);
     // cr_read(archivo, 1, 390);
 
     // cr_write(crFILE* file_desc, void* buffer, int nbytes);
