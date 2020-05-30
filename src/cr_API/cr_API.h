@@ -1,15 +1,25 @@
 #pragma once 
 
+static unsigned      block_size     = 8192;
+static unsigned      max_files      = 8192 / 32;
+static unsigned      max_file_size  = 8192 * (2048 + 2044);
+static unsigned long partition_size = 536870912;
+static unsigned long n_blocks_part  = 65536;
+static unsigned long partitions[4]  = {0, 65536, 131072, 196608};
+
 typedef struct crFILE
 {
     int size;
-    int* array;
+    int* bytes;
     char* nombre;
     int puntero_a_bloque;
     int cant_hardlinks;
     char* modo;
+    int max_size_bytes;
+    int pos_en_array;
 
 }crFILE;
+
 char* PATH;
 
 void cr_mount(char* diskname);
