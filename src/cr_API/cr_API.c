@@ -269,7 +269,12 @@ int cr_hardlink(unsigned disk, char* orig, char* dest){
   }
 }
 int cr_softlink(unsigned disk_orig, unsigned disk_dest, char* orig, char* dest){
-  if(cr_exists(disk_orig, orig) && orig == dest){
+  if(orig != dest){
+    printf("El archivo %s es distinto de %s\n", orig, dest);
+    return 1;
+  }
+
+  else if(cr_exists(disk_orig, orig)){
     FILE *ptr;
     ptr = fopen(PATH, "rb+");
     char str_dest[50];
@@ -305,7 +310,7 @@ int cr_softlink(unsigned disk_orig, unsigned disk_dest, char* orig, char* dest){
     return 1;
   }
   else{
-    printf("El archivo %s no existe o %s es distinto de %s\n", orig, orig, dest);
+    printf("El archivo %s no existe.\n", orig);
     return 1;
   }
 }
