@@ -107,8 +107,8 @@ else
 void cr_ls(unsigned disk){
     return;
 }
-crFILE* cr_open(unsigned disk, char* filename, char* mode){
-
+crFILE* cr_open(unsigned disk, char* filename, char* mode)
+{
     if (disk != 1 && disk != 2 && disk != 3 && disk != 4)
       {
         printf("Disco no existente\n");
@@ -216,7 +216,7 @@ crFILE* cr_open(unsigned disk, char* filename, char* mode){
       unsigned char buffer_directorio[32];
       fseek(ptr, 32*256*65536*(disk - 1), SEEK_SET);
 
-      int puntero;
+      //int puntero;
       for (int i = 0; i < 256; i++)
       {
         fread(buffer_directorio, sizeof(buffer_directorio), 1, ptr);
@@ -245,23 +245,7 @@ crFILE* cr_open(unsigned disk, char* filename, char* mode){
           }
         }
       }
-      //posicion queda en var puntero
-
-
-      ////
-
-      // fseek(ptr, 0, SEEK_SET);
-      // unsigned char buffer[3];
-      // fread(buffer, sizeof(buffer), 1, ptr);
-      //
-      // uint32_t num, num4;
-      // // printf("num: %i\n", buffer[0]);
-      // num = buffer[0] - 0x80;
-      // indice = num << 16|buffer[1] << 8|buffer[2];
-      // // printf("num: %i\n", num);
-      // // printf("num: %i\n", indice);
-      //
-      // printf("suma: %i\n", indice);
+      printf("puntero: %i\n", puntero);
 
       fseek(ptr, 32*256*puntero, SEEK_SET); //bloque indice
 
@@ -292,6 +276,7 @@ crFILE* cr_open(unsigned disk, char* filename, char* mode){
 
       fclose(ptr);
     }
+    // printf("puntero: %i\n", puntero);
 
     else
     {
@@ -304,6 +289,7 @@ crFILE* cr_open(unsigned disk, char* filename, char* mode){
     crfile -> size = cantidad;
     crfile -> nombre = filename;
     crfile -> puntero_a_bloque = puntero;
+    printf("crfile -> puntero_a_bloque %i\n", crfile -> puntero_a_bloque);
     crfile -> cant_hardlinks = referencias;
     crfile -> cant_bloques = porte;
     crfile -> modo = mode;
@@ -316,7 +302,7 @@ int cr_read (crFILE* file_desc, void* buffer, int nbytes){
     int bloque;
     int byte_de_bloque;
     int bloque_para_leer;
-    int bytes_leidos;
+    int bytes_leidos = 0;;
     int en_proceso = 1;
     bloque = (file_desc -> byte_leido) / (256 * 32);
     // printf("bloque: %i\n", bloque);
@@ -329,15 +315,16 @@ int cr_read (crFILE* file_desc, void* buffer, int nbytes){
       // printf("%i\n", file_desc -> puntero_a_bloque);
       // printf("%i\n", 32*256*(file_desc -> puntero_a_bloque) + 12 + bloque*4);
       // fseek(ptr, 32*256*(file_desc -> puntero_a_bloque + 12 + bloque*4), SEEK_SET);
+      printf("puntero: %i\n", file_desc -> puntero_a_bloque);
       fseek(ptr, 32*256*(file_desc -> puntero_a_bloque) + 12 + bloque * 4, SEEK_SET);
 
       ////// Buscar bloque para comenzar a leer
       //fseek(ptr, 12 + bloque*4, SEEK_CUR);
       unsigned char buffer[4];
       fread(buffer, sizeof(buffer), 1, ptr);
-      // printf("buffer %s\n", buffer);
+      printf("buffer %i\n", buffer[0]);
       bloque_para_leer = buffer[0] << 24 | buffer[1] << 16|buffer[2] << 8|buffer[3];
-      printf("%i\n", bloque_para_leer);
+      printf("bloque_para_leer: %i\n", bloque_para_leer);
       // bloque_para_leer = calculo_numero(buffer, 4);
       // printf("%i\n", bloque_para_leer);
       ///////////
@@ -348,11 +335,17 @@ int cr_read (crFILE* file_desc, void* buffer, int nbytes){
       unsigned char buff[1];
       //minimo entre nbytes, lo que queda de este archivo y lo que queda de bloque
       //int aa = min(nbytes, )
+      printf("aaaa\n");
       int i = 0;
+      printf("nbytes - bytes_leidos %i\n", nbytes - bytes_leidos);
+      printf("file_desc -> size - file_desc -> byte_leido - bytes_leidos %i\n", file_desc -> size - file_desc -> byte_leido - bytes_leidos);
+      printf("32*256 - byte_de_bloque %i\n", 32*256 - byte_de_bloque);
       for (i = 0; i < nbytes - bytes_leidos && i < file_desc -> size - file_desc -> byte_leido - bytes_leidos && i < 32*256 - byte_de_bloque; i++)
       {
+        // printf("%i\n", i);
         fread(buff, sizeof(buff), 1, ptr);
-        // printf("%s\n", buff);
+        //buffer[i] = buff[0];
+        printf("%s", buff);
       }
       bytes_leidos += i;
       printf("nbytes %i\n", nbytes);
