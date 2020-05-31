@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 
 typedef struct crFILE
 {
@@ -8,8 +8,9 @@ typedef struct crFILE
     int puntero_a_bloque;
     int cant_hardlinks;
     char* modo;
-    int max_size_bytes;
-    int pos_en_array;
+    int cant_bloques;
+    int existe;
+    int byte_leido;
 
 }crFILE;
 char* PATH;
@@ -22,7 +23,7 @@ int cr_close(crFILE* file_desc);
 long int get_free_block(unsigned int puntero_indice);
 
 void cr_ls(unsigned disk);
-crFILE* cr_open(unsigned disk, char* filename, char mode);
+crFILE* cr_open(unsigned disk, char* filename, char* mode);
 int cr_read (crFILE* file_desc, void* buffer, int nbytes);
 
 
@@ -32,4 +33,3 @@ int cr_softlink(unsigned disk_orig, unsigned disk_dest, char* orig, char* dest);
 
 int cr_unload(unsigned disk, char* orig, char* dest);
 int cr_load(unsigned disk, char* orig);
-
