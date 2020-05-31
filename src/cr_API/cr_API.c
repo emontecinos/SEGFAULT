@@ -58,6 +58,7 @@ void cr_bitmap(unsigned disk, bool hex){
     //     }
     // }
     printf("disco: %d\nOcupados: %d Libres: %d\nTotal: %d\n",disk,bloques_ocupados,bloques_desocupados,bloques_ocupados+bloques_desocupados);
+
     fclose(file);
     return;
 }
@@ -107,7 +108,10 @@ int cr_exists(unsigned disk, char* filename){
     }
   else
   {
-    return -1;
+
+    printf("Disco no existente\n");
+    return 0;
+
   }
 }
 
@@ -146,6 +150,7 @@ void cr_ls(unsigned disk){
     fclose(ptr);
     return;
 }
+
 crFILE* cr_open(unsigned disk, char* filename, char mode){
     crFILE* crfile=malloc(sizeof(crFILE));
     crfile ->size=1;
