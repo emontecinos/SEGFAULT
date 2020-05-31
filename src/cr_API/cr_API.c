@@ -424,8 +424,209 @@ int cr_read (crFILE* file_desc, void* buffer, int nbytes){
     return 0;
 }
 
-int cr_write(crFILE* file_desc, void* buffer, int nbytes){
+unsigned int get_free_block(unsigned int puntero_indice){
+    int disk=0;
+    int inicio=0;
+    int final=0;
+    if (puntero_indice < 65536){
+        disk=1;
+        inicio=0;
+        final=65535;
+    }else if(puntero_indice < 131072){
+        disk=2;
+        inicio=65536;
+        final=131071;
+    }else if(puntero_indice < 196608){
+        disk=3;
+        inicio=131072;
+        final=196607;
+    }else{
+        disk=4;
+        inicio=196608;
+        final=262143;
+    }
+    int byte_leido=0;
+    int aux_bit;
+    unsigned int bloque_libre=-1;
+    unsigned char aux_buffer;
+    unsigned int bloque_inicio_rev=(disk-1)*pow(2,29)+pow(2,13);
+    
+    FILE* file = fopen(PATH,"rb");
+    fseek(file,bloque_inicio_rev,SEEK_SET);//Bitmap de particion
+    //fprintf(stderr,"inicio: %d,byte inicio rev %d, final; %d\n",inicio,bloque_inicio_rev, final);
+    for (int i=0;i<65536;i++){
+        byte_leido=fread(&aux_buffer,1,1,file);
+        int valor_byte = (int) aux_buffer;
+        //fprintf(stderr,"BYTE LEIDO: %d \n",valor_byte);
+            
+        if (valor_byte<255){
+            int indice_bloque;
+            //tiene algun 0 en alguna parte
+            
+            for(int j=7;j>=0;j--){
+                indice_bloque=aux_buffer&(int)pow(2,j);
+                if(indice_bloque==0){
+                    bloque_libre=inicio+7-j;
+                    fclose(file);
+                    return bloque_libre;
+                }
+            }
+        }
+    }
+    fclose(file);
+    return bloque_libre;
+}
+int escribir_bloque_dir_simple(unsigned int dir_bloque_dir_simple, unsigned int bloque_a_escribir, crFILE*file_desc,FILE* file){
+    int bloque = (int)(file_desc->size/8196)+1-2044;// bloque "entero" usado de dir simple
+    unsigned char aux_buffer;
+    unsigned dir_a_escribir;
+    dir_a_escribir=(file_desc->puntero_a_bloque+8196-16);
+    fseek(file,dir_a_escribir,SEEK_SET);
+    fread(&aux_buffer,1,2,file);
+    dir_a_escribir=aux_buffer+bloque;
+    fseek(file,dir_a_escribir,SEEK_SET);
+    fwrite(&bloque_a_escribir,2,1,file);
     return 1;
+}
+int actualizar_bitmap(unsigned int bloque_a_escribir,FILE* file){
+    int disk=0;
+    if (bloque_a_escribir < 65536){
+        disk=1;
+    }else if(bloque_a_escribir < 131072){
+        disk=2;
+    }else if(bloque_a_escribir < 196608){
+        disk=3;
+    }else{
+        disk=4;
+    }
+    unsigned int byte_escritura;
+    unsigned int byte_lectura;
+    int byte_actualizado;
+    // byte_escritura=(disk-1)*pow(2,29)+pow(2,13) + (int)bloque_a_escribir/8;
+    byte_escritura=bloque_a_escribir-(disk-1);
+    byte_escritura=(int)(bloque_a_escribir-((disk-1)*pow(2,16)+1))*pow(2,13);
+    fseek(file,byte_escritura,SEEK_SET);
+    fread(&byte_lectura,1,1,file);
+    byte_actualizado=byte_lectura|(int)pow(2,bloque_a_escribir%8);
+    fseek(file,-1,SEEK_CUR);
+    fwrite(&byte_actualizado,1,1,file);
+    return 1;
+}
+int escribir_bloque_indice(unsigned int bloque_a_escribir,crFILE*file_desc,FILE* file){
+    int bloque = (int)(file_desc->size /8196)+1;// bloque "entero" usado
+    unsigned int dir_a_escribir;
+    dir_a_escribir=file_desc->puntero_a_bloque+12 + bloque;
+    fseek(file,dir_a_escribir,SEEK_SET);
+    // unsigned char* b_a_e;
+    // b_a_e=(unsigned char *) bloque_a_escribir;
+    fwrite(&bloque_a_escribir,2,1,file);
+    return 1;
+}
+void actualizar_tamano_archivo(int bytes,crFILE*file_desc){
+    file_desc->size+=bytes;
+    return;
+}
+
+int cr_write(crFILE* file_desc, void* buffer, int nbytes){
+    int n_max=0;
+    if (file_desc->size+nbytes <=4092*pow(2,13)){
+        n_max=nbytes;
+    }else{
+        n_max=4092*pow(2,13)-file_desc->size;
+    }
+    int cant_escribir_indice=0;
+    int cant_escribir_dir_simple=0;
+    //calcular espacio libre para archivo
+    unsigned int espacio_libre_archivo=4092*pow(2,13)-file_desc->size;
+    int byte_a_escribir=0;
+    void **byte_buffer = malloc(sizeof(void *) * nbytes);
+
+    //Ver si: cabe
+    if (nbytes <= espacio_libre_archivo){
+        if(file_desc->size>=2044*pow(2,13)){
+            cant_escribir_indice=0;
+        }else{
+            cant_escribir_indice=2044*pow(2,13) - file_desc->size;
+        }
+        cant_escribir_dir_simple=nbytes-cant_escribir_indice;
+    }else{
+        //No cabe en el archivo
+        if(file_desc->size>=2044*pow(2,13)){
+            cant_escribir_indice=0;
+        }else{
+            cant_escribir_indice=2044*pow(2,13) - file_desc->size;
+        }
+        cant_escribir_dir_simple= (4092*pow(2,13))-file_desc->size;
+    }
+    //Seguir aqui
+    FILE* file = fopen(PATH,"wb");
+    //Cuanto escribir en cada parte
+    //Si hay espacio para escribir en indice,
+    unsigned int escritos_indice=0;
+    if(cant_escribir_indice>0){
+        //Escribir en indice
+        //Bytes a escbirir
+        
+        while (escritos_indice<cant_escribir_indice){
+            unsigned int bloque_a_escribir=get_free_block(file_desc->puntero_a_bloque);
+            //Si puedo escribir
+            if(bloque_a_escribir!=-1){
+                //Escribir en cada byte del bloque
+                fseek(file,bloque_a_escribir*8192,SEEK_SET);//Ponerse en byte a escribir, no en bloque
+                for (int j=0;j<8192;j++){
+                    //Escribir buf
+                    char* a_escribir;
+                    a_escribir=byte_buffer[byte_a_escribir];
+                    fwrite(a_escribir,1,1,file);
+                    byte_a_escribir++;
+                    escritos_indice++;
+                    if (byte_a_escribir>=nbytes){
+                        break;//Termine de escribir el archivo
+                    }
+                }
+                escribir_bloque_indice(bloque_a_escribir,file_desc,file);
+                actualizar_bitmap(bloque_a_escribir,file);
+                //Escribir en bloque indice dir de bloque (bloque_a_escribir)
+                //Actualizar bitmap
+            }else{
+                break;
+            }
+        }
+    }
+    unsigned int escritos_simple=0;
+    if(cant_escribir_dir_simple>0){
+        //Escribir en bloque dir simple
+        unsigned int dir_bloque_dir_simple=file_desc->puntero_a_bloque+8188;//pos del bloque de dir simple; 8192-4
+        while(escritos_simple<cant_escribir_dir_simple){
+            unsigned int bloque_a_escribir=get_free_block(file_desc->puntero_a_bloque);//Dentro de la partición; rango de disk
+            if(bloque_a_escribir!=-1){
+                fseek(file,bloque_a_escribir*8192,SEEK_SET);
+                //Escribir el bloque
+                for(int j=0;j<8192;j++){
+                    char* a_escribir;
+                    a_escribir=byte_buffer[byte_a_escribir];
+                    //char a_escribir[0]=buffer[byte_a_escribir];
+                    fwrite(a_escribir,1,1,file);
+                    byte_a_escribir++;
+                    escritos_simple++;
+                    if(byte_a_escribir>=nbytes){
+                        break;
+                    }
+                }
+                escribir_bloque_dir_simple(dir_bloque_dir_simple, bloque_a_escribir,file_desc,file);
+                actualizar_bitmap(bloque_a_escribir,file);
+                //Escribir en bloque dir simple dir de bloque (bloque_a_escribir)
+                //Actualizar bitmap
+            }else{
+                break;
+            }
+        }
+    }
+    //Si se escribe se actualiza
+    if(escritos_simple+escritos_indice>0) actualizar_tamano_archivo(escritos_simple+escritos_indice,file_desc);
+
+    free(byte_buffer);
+    return escritos_indice+escritos_simple;
 }
 int cr_close(crFILE* file_desc){
     free(file_desc);
