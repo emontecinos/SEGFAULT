@@ -255,6 +255,31 @@ int cr_rm(unsigned disk, char* filename){
     int nume = (int)bytes[0]<<24| (int)bytes[1]<<16 | (int)bytes[2]<<8 |(int)bytes[3];
     printf("%d\n",nume);
     if(num == 0){
+      puntero = puntero*256*32;
+      unsigned int byte_escritura;
+
+      puntero += 8;
+      unsigned char tamano[8];
+      uint64_t num2 = (int)tamano[0]<<56| (int)tamano[1]<<48 | (int)tamano[2]<<40 |(int)tamano[3] << 32 | (int)tamano[4] << 24
+      | (int)tamano[5]<<16 | (int)tamano[6]<<8 | (int)tamano[7];
+      uint64_t porte;
+      porte = num2/(8192);
+      if (porte * 8192 != num2)
+      {
+        porte += 1;
+      }
+      int i;
+      if(porte <= 2044 ){
+        for (i = 0; i < porte; i++){
+          unsigned char bit_a_borrar[4];
+          fseek(ptr, 32*256*puntero, SEEK_SET);
+          fread(bit_a_borrar, sizeof(bit_a_borrar), 1, ptr);
+          int n_bit_a_borrar = (int)bit_a_borrar[0]<<24| (int)bit_a_borrar[1]<<16 | (int)bit_a_borrar[2]<<8 |(int)bit_a_borrar[3];
+
+
+        }
+
+      }
 
     }
 
