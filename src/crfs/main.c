@@ -19,12 +19,25 @@ int main(int argument_count, char** arguments){
     cr_bitmap(3, 1);
     cr_bitmap(4, 1);
     */
-
+  //  cr_ls(2);
     // cr_exists(ROUTE, char* filename);
+    // char qq[3];
+    // qq[0] = 's';
+    // qq[1] = 2;
+    // qq[2] = 3;
+    //
+    // fseek(ptr, 7*32, SEEK_SET);
+    // for (int g = 0; g < 3; g++)
+    // {
+    //   fwrite(qq[g], sizeof(qq[g]), 1, ptr);
+    // }
 
-    // cr_ls(ROUTE);
 
-    // cr_open(ROUTE, char* filename, char mode);
+
+    cr_open(1, "aaa.txt", "w");
+
+    printf("-------------\n");
+    cr_ls(1);
 
     // cr_read (crFILE* file_desc, void* buffer, int nbytes);
 
@@ -37,7 +50,7 @@ int main(int argument_count, char** arguments){
     //cr_hardlink(1, "Baroque", "dest4.mp3");
 
     //cr_softlink(1, 4, "guides.txt", "guides.txt");
-    cr_ls(2);
+
 
     // cr_unload(ROUTE, char* orig, char* dest);
 

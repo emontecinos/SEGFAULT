@@ -119,7 +119,7 @@ int cr_exists(unsigned disk, char* filename){
 
 
 void cr_ls(unsigned disk){
-
+    //printf("disk %i\n", disk);
     if (disk != 1 && disk != 2 && disk != 3 && disk != 4)
     {
       printf("Disco no existente\n");
@@ -135,11 +135,11 @@ void cr_ls(unsigned disk){
     for (int i = 0; i < 256; i++)
     {
       fread(buffer,sizeof(buffer),1,ptr);
-
-        if(buffer[0] > 0x7f)
+        //printf("%i\n", i);
+        if(buffer[0] >= 115)
         {
           uint32_t num, num4;
-          num4 = buffer[0] - 0x80;
+          num4 = buffer[0];// - 0x80;
           num = num4 << 16 | buffer[1] << 8|buffer[2];
           printf("puntero: %i\n", num);
           for (int j = 3; j < 32; j++)
@@ -221,7 +221,7 @@ crFILE* cr_open(unsigned disk, char* filename, char* mode)
       }
 
       FILE *ptr;
-      ptr = fopen(PATH, "rb");
+      ptr = fopen(PATH, "rb+");
       /// ver bloque disponible en bitmap
       unsigned char buff[1];
       uint32_t num;
@@ -260,6 +260,45 @@ crFILE* cr_open(unsigned disk, char* filename, char* mode)
       referencias = 0;
       porte = 0;
       cantidad = 0;
+
+      //Agregar a directorio.
+      fseek(ptr, 32*256*65536*(disk - 1), SEEK_SET);
+      unsigned char buffd[32];
+      for (int i = 0; i <= 256; i++)
+      {
+        if (i == 256)
+        {
+          printf("No se pueden agregar mas archivos a disco\n");
+          return NULL;
+        }
+        fread(buffd, sizeof(buffd), 1, ptr);
+        uint32_t para_escribir;
+        if (buffd[0] <= 0x7F)
+        {
+          int ocupado = 128;
+          para_escribir = ocupado << 16 | puntero;
+
+          fseek(ptr, 32*256*65536*(disk - 1) + i*32, SEEK_SET);
+          //fwrite('128', sizeof(int), 1, ptr);
+          unsigned char bytes[3];
+          unsigned long n = para_escribir;
+
+          bytes[0] = (n >> 16) & 0xFF;
+          bytes[1] = (n >> 8) & 0xFF;
+          bytes[2] = n & 0xFF;
+          for (int g = 0; g < 3; g++)
+          {
+             fwrite(&bytes[g], sizeof(bytes[g]), 1, ptr);
+          }
+          for (int l = 0; filename[l]; l++)
+          {
+             fwrite(&filename[l], sizeof(filename[l]), 1, ptr);
+          }
+          char end[1];
+          break;
+        }
+      }
+      fclose(ptr);
     }
 
     else if(strncmp(mode, "r", 2) == 0)
