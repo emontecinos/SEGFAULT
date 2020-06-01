@@ -11,6 +11,27 @@
 
 extern char* PATH;
 
+
+uint64_t calculo_numero(unsigned char buffer[], int iii)
+{
+  int suma = 0;
+  int bloque = 0;
+  unsigned char b;
+  for (int i = 0; i < iii; i++)
+  {
+    b = buffer[i];
+    for(int j = 0; j < 8; j++)
+    {
+      bloque = (8*iii - 8*i - 1) - (j);
+      if ((b>>(7-j)&1) == 1 && bloque < 23)
+      {
+        suma += pow(2, bloque); ///este es el bloque que necesita.
+        }
+      }
+  }
+  return suma;
+}
+
 void cr_mount(char* diskname){
     PATH = diskname;
     return;
@@ -58,6 +79,7 @@ void cr_bitmap(unsigned disk, bool hex){
     //     }
     // }
     printf("disco: %d\nOcupados: %d Libres: %d\nTotal: %d\n",disk,bloques_ocupados,bloques_desocupados,bloques_ocupados+bloques_desocupados);
+
     fclose(file);
     return;
 }
@@ -266,15 +288,19 @@ int cr_rm(unsigned disk, char* filename){
       fseek(ptr,-1,SEEK_CUR);
       fwrite(&byte_actualizado,1,1,ptr);
 
-      punto += 8;
+      punto += 4;
       unsigned char tamano[8];
-      int num2 = calculo_numero(tamano, 8);
-      uint64_t porte;
+      fseek(ptr, punto ,SEEK_SET);
+      fread(tamano, sizeof(tamano), 1, ptr);
+      uint64_t num2 = calculo_numero(tamano, 8);
+      int porte;
       porte = num2/(8192);
+      punto += 8;
       if (porte * 8192 != num2)
       {
         porte += 1;
       }
+      printf("El disco tiene %d bloques\n", porte);
       int i;
       if(porte <= 2044 ){
         for (i = 0; i < porte; i++){
@@ -486,25 +512,4 @@ int cr_unload(unsigned disk, char* orig, char* dest){
 }
 int cr_load(unsigned disk, char* orig){
     return 1;
-}
-
-
-int calculo_numero(unsigned char buffer[], int iii)
-{
-  int suma = 0;
-  int bloque = 0;
-  unsigned char b;
-  for (int i = 0; i < iii; i++)
-  {
-    b = buffer[i];
-    for(int j = 0; j < 8; j++)
-    {
-      bloque = (8*iii - 8*i - 1) - (j);
-      if ((b>>(7-j)&1) == 1 && bloque < 23)
-      {
-        suma += pow(2, bloque); ///este es el bloque que necesita.
-        }
-      }
-  }
-  return suma;
 }
