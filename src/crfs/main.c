@@ -18,14 +18,22 @@ int main(int argument_count, char** arguments){
     cr_bitmap(3, 1);
     cr_bitmap(4, 1);
     */
-
+  //  cr_ls(2);
     // cr_exists(ROUTE, char* filename);
 
-    // cr_ls(ROUTE);
 
-    // cr_open(ROUTE, char* filename, char mode);
+    crFILE* archivo;
+    archivo = cr_open(1, "guides.txt", "r");
 
-    // cr_read (crFILE* file_desc, void* buffer, int nbytes);
+    // printf("-------------\n");
+    //cr_ls(1);
+    int aaa[20];
+
+    unsigned char buff[300];
+    //unsigned char * buff = ( unsigned char * )malloc( 20 * sizeof( unsigned char ) );
+    cr_read(archivo, buff, 300);
+    free(archivo);
+
 
     // cr_write(crFILE* file_desc, void* buffer, int nbytes);
 
@@ -42,6 +50,9 @@ int main(int argument_count, char** arguments){
 
     //cr_softlink(2, 4, "yes.mp3", "yes.mp3");
 
+
+
+    //cr_softlink(1, 4, "guides.txt", "guides.txt");
 
 
     // cr_unload(ROUTE, char* orig, char* dest);
