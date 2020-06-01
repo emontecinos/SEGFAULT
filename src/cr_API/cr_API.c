@@ -281,10 +281,10 @@ int cr_rm(unsigned disk, char* filename){
       unsigned int byte_escritura;
       unsigned char byte_lectura;
       int byte_actualizado;
-      byte_escritura=((int)puntero - (disk-1)*pow(2,16))/8 + (disk-1)*pow(2,29)+pow(2,13);
+      byte_escritura=((int)puntero - (disk-1)*65536)/8 + (disk-1)*(int)pow(2,29)+(int)pow(2,13);
       fseek(ptr,byte_escritura,SEEK_SET);
       fread(&byte_lectura,1,1,ptr);
-      byte_actualizado=(int)byte_lectura & (255 - (int)pow(2, (int)(puntero - (disk-1)*pow(2,16)) % 8));
+      byte_actualizado=(int)byte_lectura & (255 - (int)pow(2, 7 - (int)(puntero - (disk-1)*65536) % 8));
       fseek(ptr,-1,SEEK_CUR);
       fwrite(&byte_actualizado,1,1,ptr);
 
@@ -308,11 +308,13 @@ int cr_rm(unsigned disk, char* filename){
           fseek(ptr, punto, SEEK_SET);
           fread(bit_a_borrar, sizeof(bit_a_borrar), 1, ptr);
           int n_bit_a_borrar = (int)bit_a_borrar[0]<<24| (int)bit_a_borrar[1]<<16 | (int)bit_a_borrar[2]<<8 |(int)bit_a_borrar[3];
-          byte_escritura=(n_bit_a_borrar - (disk-1)*pow(2,16))/8 + (disk-1)*pow(2,29)+pow(2,13);
+          byte_escritura=(n_bit_a_borrar - (disk-1)*(int)pow(2,16))/8 + (disk-1)*(int)pow(2,29)+(int)pow(2,13);
           fseek(ptr,byte_escritura,SEEK_SET);
           fread(&byte_lectura,1,1,ptr);
-          byte_actualizado=(int)byte_lectura & (255 -(int)pow(2, (int)(n_bit_a_borrar - (disk-1)*pow(2,16)) % 8));
-          fseek(ptr,-1,SEEK_CUR);
+          unsigned char  int_qliao[1];
+          int_qliao[0] = (255 -(int)pow(2, 7 - (int)((n_bit_a_borrar - (disk-1)*(int)pow(2,16)) % 8)));
+          byte_actualizado= byte_lectura & int_qliao[0];
+          fseek(ptr,byte_escritura,SEEK_SET);
           fwrite(&byte_actualizado,1,1,ptr);
           punto += 4;
         }
@@ -323,29 +325,33 @@ int cr_rm(unsigned disk, char* filename){
           fseek(ptr, punto, SEEK_SET);
           fread(bit_a_borrar, sizeof(bit_a_borrar), 1, ptr);
           int n_bit_a_borrar = (int)bit_a_borrar[0]<<24| (int)bit_a_borrar[1]<<16 | (int)bit_a_borrar[2]<<8 |(int)bit_a_borrar[3];
-          byte_escritura=(n_bit_a_borrar - (disk-1)*pow(2,16))/8 + (disk-1)*pow(2,29)+pow(2,13);
+          byte_escritura=(n_bit_a_borrar - (disk-1)*(int)pow(2,16))/8 + (disk-1)*(int)pow(2,29)+(int)pow(2,13);
           fseek(ptr,byte_escritura,SEEK_SET);
           fread(&byte_lectura,1,1,ptr);
-          byte_actualizado=(int)byte_lectura & (255 -(int)pow(2, (int)(n_bit_a_borrar - (disk-1)*pow(2,16)) % 8));
-          fseek(ptr,-1,SEEK_CUR);
+          unsigned char  intq[1];
+          intq[0] = (255 -(int)pow(2, 7 - (int)((n_bit_a_borrar - (disk-1)*(int)pow(2,16)) % 8)));
+          byte_actualizado= byte_lectura & intq[0];
+          fseek(ptr,byte_escritura,SEEK_SET);
           fwrite(&byte_actualizado,1,1,ptr);
           punto += 4;
         }
         fseek(ptr, punto, SEEK_SET);
         unsigned char indireccionamiento[4];
-        fread(indireccionamiento, sizeof(punto), 1, ptr);
+        fread(indireccionamiento, sizeof(indireccionamiento), 1, ptr);
+        uint32_t n_indireccionamiento = (int)indireccionamiento[0]<<24| (int)indireccionamiento[1]<<16
+        | (int)indireccionamiento[2]<<8 |(int)indireccionamiento[3];
         for (i = 0; i < porte - 2044; i++){
           unsigned char bit_a_borrar[4];
-          fseek(ptr, punto, SEEK_SET);
+          fseek(ptr, n_indireccionamiento, SEEK_SET);
           fread(bit_a_borrar, sizeof(bit_a_borrar), 1, ptr);
           int n_bit_a_borrar = (int)bit_a_borrar[0]<<24| (int)bit_a_borrar[1]<<16 | (int)bit_a_borrar[2]<<8 |(int)bit_a_borrar[3];
-          byte_escritura=(n_bit_a_borrar - (disk-1)*pow(2,16))/8 + (disk-1)*pow(2,29)+pow(2,13);
+          byte_escritura=(n_bit_a_borrar - (disk-1)*(int)pow(2,16))/8 + (disk-1)*(int)pow(2,29)+(int)pow(2,13);
           fseek(ptr,byte_escritura,SEEK_SET);
           fread(&byte_lectura,1,1,ptr);
-          byte_actualizado=(int)byte_lectura & (255 -(int)pow(2, (int)(n_bit_a_borrar - (disk-1)*pow(2,16)) % 8));
+          byte_actualizado=byte_lectura & (255 -(int)pow(2, 7 - (int)(n_bit_a_borrar - (disk-1)*(int)pow(2,16)) % 8));
           fseek(ptr,-1,SEEK_CUR);
           fwrite(&byte_actualizado,1,1,ptr);
-          punto += 4;
+          n_indireccionamiento += 4;
         }
       }
     }

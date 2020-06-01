@@ -31,10 +31,10 @@ int main(int argument_count, char** arguments){
 
     // cr_close(crFILE* file_desc);
 
-    cr_bitmap(3, 1);
-    cr_rm(3, "in.mkv");
-    cr_ls(3);
-    cr_bitmap(3, 1);
+    cr_bitmap(1, 1);
+    cr_rm(1, "Baroque.mp3");
+    cr_ls(1);
+    cr_bitmap(1, 1);
 
 
     //cr_hardlink(2, "yes.mp3", "destino.mp3");
