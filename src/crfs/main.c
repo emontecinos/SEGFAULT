@@ -31,10 +31,10 @@ int main(int argument_count, char** arguments){
 
     // cr_close(crFILE* file_desc);
 
-    cr_bitmap(1, 1);
-    cr_rm(1, "Baroque.mp3");
-    cr_ls(1);
-    cr_bitmap(1, 1);
+    //cr_bitmap(1, 1);
+    cr_rm(1, "lala.txt");
+    //cr_ls(1);
+    //cr_bitmap(1, 1);
 
 
     //cr_hardlink(2, "yes.mp3", "destino.mp3");
@@ -42,11 +42,13 @@ int main(int argument_count, char** arguments){
 
     //cr_softlink(2, 4, "yes.mp3", "yes.mp3");
 
+    //cr_load(1, "lala.txt");
+
+    cr_ls(1);
+
+    //cr_unload(1, "lala.txt", "/mnt/c/Users/reyza/Desktop/");
 
 
-    // cr_unload(ROUTE, char* orig, char* dest);
-
-    // cr_load(ROUTE, char* orig);
 
 
 
