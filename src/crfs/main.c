@@ -31,7 +31,9 @@ int main(int argument_count, char** arguments){
 
     unsigned char buff[300];
     //unsigned char * buff = ( unsigned char * )malloc( 20 * sizeof( unsigned char ) );
-    cr_read(archivo, buff, 300);
+    int aaaaaa;
+    aaaaaa = cr_read(archivo, buff, 300);
+    //printf("aaaa %i\n", aaaaaa);
     cr_read(archivo, buff, 200);
     free(archivo);
 
@@ -40,10 +42,10 @@ int main(int argument_count, char** arguments){
 
     // cr_close(crFILE* file_desc);
 
-    cr_bitmap(1, 1);
-    cr_rm(1, "Baroque.mp3");
-    cr_ls(1);
-    cr_bitmap(1, 1);
+    // cr_bitmap(1, 1);
+    // cr_rm(1, "Baroque.mp3");
+    // cr_ls(1);
+    // cr_bitmap(1, 1);
 
 
     //cr_hardlink(2, "yes.mp3", "destino.mp3");

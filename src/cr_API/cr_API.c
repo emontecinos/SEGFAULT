@@ -366,6 +366,12 @@ crFILE* cr_open(unsigned disk, char* filename, char* mode)
 
 int cr_read (crFILE* file_desc, void* buffer, int nbytes){
 
+    if (file_desc == NULL)
+    {
+      printf("Archivo no valido\n");
+      return 0;
+    }
+
     unsigned char* bufferr = (unsigned char*)buffer;
 
     int bloque;
@@ -451,7 +457,7 @@ unsigned int get_free_block(unsigned int puntero_indice){
     unsigned int bloque_libre=-1;
     unsigned char aux_buffer;
     unsigned int bloque_inicio_rev=(disk-1)*pow(2,29)+pow(2,13);
-    
+
     FILE* file = fopen(PATH,"rb");
     fseek(file,bloque_inicio_rev,SEEK_SET);//Bitmap de particion
     //fprintf(stderr,"inicio: %d,byte inicio rev %d, final; %d\n",inicio,bloque_inicio_rev, final);
@@ -459,11 +465,11 @@ unsigned int get_free_block(unsigned int puntero_indice){
         byte_leido=fread(&aux_buffer,1,1,file);
         int valor_byte = (int) aux_buffer;
         //fprintf(stderr,"BYTE LEIDO: %d \n",valor_byte);
-            
+
         if (valor_byte<255){
             int indice_bloque;
             //tiene algun 0 en alguna parte
-            
+
             for(int j=7;j>=0;j--){
                 indice_bloque=aux_buffer&(int)pow(2,j);
                 if(indice_bloque==0){
@@ -567,7 +573,7 @@ int cr_write(crFILE* file_desc, void* buffer, int nbytes){
     if(cant_escribir_indice>0){
         //Escribir en indice
         //Bytes a escbirir
-        
+
         while (escritos_indice<cant_escribir_indice){
             unsigned int bloque_a_escribir=get_free_block(file_desc->puntero_a_bloque);
             //Si puedo escribir
