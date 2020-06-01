@@ -33,6 +33,7 @@ int main(int argument_count, char** arguments){
     unsigned char buff[300];
     //unsigned char * buff = ( unsigned char * )malloc( 20 * sizeof( unsigned char ) );
     cr_read(archivo, buff, 300);
+    free(archivo);
 
 
     // cr_write(crFILE* file_desc, void* buffer, int nbytes);
