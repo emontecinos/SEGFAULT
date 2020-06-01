@@ -255,8 +255,16 @@ int cr_rm(unsigned disk, char* filename){
     int nume = (int)bytes[0]<<24| (int)bytes[1]<<16 | (int)bytes[2]<<8 |(int)bytes[3];
     printf("%d\n",nume);
     if(num == 0){
-      puntero = puntero*256*32;
+      int punto = puntero*256*32;
       unsigned int byte_escritura;
+      unsigned int byte_lectura;
+      int byte_actualizado;
+      byte_escritura=((int)puntero - (disk-1)*pow(2,16))/8 + (disk-1)*pow(2,29)+pow(2,13);
+      fseek(ptr,byte_escritura,SEEK_SET);
+      fread(&byte_lectura,1,1,ptr);
+      byte_actualizado=byte_lectura;
+      fseek(ptr,-1,SEEK_CUR);
+      fwrite(&byte_actualizado,1,1,ptr);
 
       puntero += 8;
       unsigned char tamano[8];
@@ -367,7 +375,7 @@ int cr_hardlink(unsigned disk, char* orig, char* dest){
       ptr = fopen(PATH, "rb+");
       fseek(ptr, puntero_nuevo_link, SEEK_SET);
       fwrite(buffer_destino, 1, 3, ptr);
-      fwrite(dest, sizeof(dest), 1, ptr);
+      fwrite(dest, strlen(dest), 1, ptr);
       fclose(ptr);
 
       unsigned char cantidad_hardlinks[4];
@@ -435,7 +443,7 @@ int cr_softlink(unsigned disk_orig, unsigned disk_dest, char* orig, char* dest){
     bytes[2] = (0) & 0xFF;
     bytes[0] = bytes[0]|128;
     fwrite(bytes, sizeof(bytes), 1, ptr);
-    fwrite(str_dest, sizeof(str_dest), 1, ptr);
+    fwrite(str_dest, strlen(str_dest), 1, ptr);
     fclose(ptr);
     return 1;
   }

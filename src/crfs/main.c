@@ -31,13 +31,14 @@ int main(int argument_count, char** arguments){
 
     // cr_close(crFILE* file_desc);
 
-    //cr_rm(1, "Baroque.mp3");
+    //cr_rm(2, "dest4.mp");
 
 
-    cr_hardlink(2, "yes.mp3", "dest4.mp3");
+    cr_hardlink(2, "yes.mp3", "destino.mp3");
+
+
+    //cr_softlink(2, 4, "yes.mp3", "yes.mp3");
     cr_ls(2);
-
-    //cr_softlink(1, 4, "guies.txt", "guies.txt");
 
 
     // cr_unload(ROUTE, char* orig, char* dest);
