@@ -7,9 +7,17 @@ extern char* PATH;
 int main(int argument_count, char** arguments){
     // Modo de uso 
     // ./crfs simdiskfilled.bin
-    // printf("%s\n",ROUTE);
-
     cr_mount(arguments[1]);
+    //printf("%s\n",PATH);
+    //cr_load(4,"lala.txt");
+    
+    //cr_unload(1,"Program in C.mkv","/mnt/c/Users/felipe/Desktop/Archivos");
+    // cr_unload(4,"lala.txt","/mnt/c/Users/felipe/desktop/Archivos");
+    // int j=15;
+    // j=cr_exists(4,"lala.txt");
+    // printf("Existe?: %d\n",j);
+    cr_ls(1);
+    //cr_unload(1,"text.txt","");
 
     //cr_bitmap(4,0);
 

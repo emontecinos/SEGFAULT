@@ -1,5 +1,12 @@
 #pragma once
 
+static unsigned      block_size     = 8192;
+static unsigned      max_files      = 8192 / 32;
+static unsigned      max_file_size  = 8192 * (2048 + 2044);
+static unsigned long partition_size = 536870912;
+static unsigned long n_blocks_part  = 65536;
+static unsigned long partitions[4]  = {0, 65536, 131072, 196608};
+
 typedef struct crFILE
 {
     int size;
@@ -18,9 +25,9 @@ char* PATH;
 void cr_mount(char* diskname);
 void cr_bitmap(unsigned disk, bool hex);
 int cr_exists(unsigned disk, char* filename);
-int cr_write(crFILE* file_desc, void* buffer, int nbytes);
+int cr_write(crFILE* file_desc, char* buffer, int nbytes);
 int cr_close(crFILE* file_desc);
-long int get_free_block(unsigned int puntero_indice);
+unsigned int get_free_block(unsigned int puntero_indice);
 
 void cr_ls(unsigned disk);
 crFILE* cr_open(unsigned disk, char* filename, char* mode);
