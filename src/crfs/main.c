@@ -1,4 +1,3 @@
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -40,9 +39,18 @@ int main(int argument_count, char** arguments){
 
     // cr_close(crFILE* file_desc);
 
-    // cr_rm(ROUTE, char* filename);
+    cr_bitmap(1, 1);
+    cr_rm(1, "Baroque.mp3");
+    cr_ls(1);
+    cr_bitmap(1, 1);
 
-    //cr_hardlink(1, "Baroque", "dest4.mp3");
+
+    //cr_hardlink(2, "yes.mp3", "destino.mp3");
+
+
+    //cr_softlink(2, 4, "yes.mp3", "yes.mp3");
+
+
 
     //cr_softlink(1, 4, "guides.txt", "guides.txt");
 
