@@ -1,4 +1,3 @@
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -28,22 +27,34 @@ int main(int argument_count, char** arguments){
 
     // printf("-------------\n");
     //cr_ls(1);
-    // int aaa[20];
-    //
-    // unsigned char buff[300];
-    // //unsigned char * buff = ( unsigned char * )malloc( 20 * sizeof( unsigned char ) );
-    // cr_read(archivo, buff, 300);
-    // cr_read(archivo, buff, 200);
-    // free(archivo);
+
+    int aaa[20];
+
+    unsigned char buff[300];
+    //unsigned char * buff = ( unsigned char * )malloc( 20 * sizeof( unsigned char ) );
+    int aaaaaa;
+    aaaaaa = cr_read(archivo, buff, 300);
+    //printf("aaaa %i\n", aaaaaa);
+    cr_read(archivo, buff, 200);
+    free(archivo);
 
 
     // cr_write(crFILE* file_desc, void* buffer, int nbytes);
 
     // cr_close(crFILE* file_desc);
 
-    // cr_rm(ROUTE, char* filename);
+    // cr_bitmap(1, 1);
+    // cr_rm(1, "Baroque.mp3");
+    // cr_ls(1);
+    // cr_bitmap(1, 1);
 
-    //cr_hardlink(1, "Baroque", "dest4.mp3");
+
+    //cr_hardlink(2, "yes.mp3", "destino.mp3");
+
+
+    //cr_softlink(2, 4, "yes.mp3", "yes.mp3");
+
+
 
     //cr_softlink(1, 4, "guides.txt", "guides.txt");
 
