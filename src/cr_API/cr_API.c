@@ -230,23 +230,15 @@ crFILE* cr_open(unsigned disk, char* filename, char* mode)
                   {
                   bloque_indice = i*8 + j + inicio;
                   encontrado = 0;
-                  // printf("----\n");
-                  // printf("%i\n", bloque_indice);
                   uint32_t num2, num3;
                   num2 = pow(2, 7 - j);
-                  // printf("%i\n", num2);
                   num3 = num2 | buff[0];
-                  // printf("%i\n", buff[0]);
-                  // printf("%i\n", num3);
 
                   fseek(ptr, 32*256*65536*(disk - 1) + 8192 + i, SEEK_SET);
                   unsigned long n2 = num3;
                   unsigned char bytes[1];
                   bytes[0] = n2 & 0xFF;
                   fwrite(&bytes[0], sizeof(bytes[0]), 1, ptr);
-                  fseek(ptr, 32*256*65536*(disk - 1) + 8192 + i, SEEK_SET);
-                  fread(buff, sizeof(buff), 1, ptr);
-                  // printf("%i\n", buff[0]);
                   break;
                 }
                 }
