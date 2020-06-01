@@ -23,18 +23,18 @@ int main(int argument_count, char** arguments){
     // cr_exists(ROUTE, char* filename);
 
 
-    crFILE* archivo;
-    archivo = cr_open(1, "guides.txt", "r");
+    // crFILE* archivo;
+    // archivo = cr_open(1, "guides2.txt", "w");
 
     // printf("-------------\n");
     //cr_ls(1);
-    int aaa[20];
-
-    unsigned char buff[300];
-    //unsigned char * buff = ( unsigned char * )malloc( 20 * sizeof( unsigned char ) );
-    cr_read(archivo, buff, 300);
-    cr_read(archivo, buff, 200);
-    free(archivo);
+    // int aaa[20];
+    //
+    // unsigned char buff[300];
+    // //unsigned char * buff = ( unsigned char * )malloc( 20 * sizeof( unsigned char ) );
+    // cr_read(archivo, buff, 300);
+    // cr_read(archivo, buff, 200);
+    // free(archivo);
 
 
     // cr_write(crFILE* file_desc, void* buffer, int nbytes);
