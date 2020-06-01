@@ -257,19 +257,18 @@ int cr_rm(unsigned disk, char* filename){
     if(num == 0){
       int punto = puntero*256*32;
       unsigned int byte_escritura;
-      unsigned int byte_lectura;
+      unsigned char byte_lectura;
       int byte_actualizado;
       byte_escritura=((int)puntero - (disk-1)*pow(2,16))/8 + (disk-1)*pow(2,29)+pow(2,13);
       fseek(ptr,byte_escritura,SEEK_SET);
       fread(&byte_lectura,1,1,ptr);
-      byte_actualizado=byte_lectura;
+      byte_actualizado=(int)byte_lectura & (255 - (int)pow(2, (int)(puntero - (disk-1)*pow(2,16)) % 8));
       fseek(ptr,-1,SEEK_CUR);
       fwrite(&byte_actualizado,1,1,ptr);
 
-      puntero += 8;
+      punto += 8;
       unsigned char tamano[8];
-      uint64_t num2 = (int)tamano[0]<<56| (int)tamano[1]<<48 | (int)tamano[2]<<40 |(int)tamano[3] << 32 | (int)tamano[4] << 24
-      | (int)tamano[5]<<16 | (int)tamano[6]<<8 | (int)tamano[7];
+      int num2 = calculo_numero(tamano, 8);
       uint64_t porte;
       porte = num2/(8192);
       if (porte * 8192 != num2)
@@ -280,20 +279,50 @@ int cr_rm(unsigned disk, char* filename){
       if(porte <= 2044 ){
         for (i = 0; i < porte; i++){
           unsigned char bit_a_borrar[4];
-          fseek(ptr, 32*256*puntero, SEEK_SET);
+          fseek(ptr, punto, SEEK_SET);
           fread(bit_a_borrar, sizeof(bit_a_borrar), 1, ptr);
           int n_bit_a_borrar = (int)bit_a_borrar[0]<<24| (int)bit_a_borrar[1]<<16 | (int)bit_a_borrar[2]<<8 |(int)bit_a_borrar[3];
-
-
+          byte_escritura=(n_bit_a_borrar - (disk-1)*pow(2,16))/8 + (disk-1)*pow(2,29)+pow(2,13);
+          fseek(ptr,byte_escritura,SEEK_SET);
+          fread(&byte_lectura,1,1,ptr);
+          byte_actualizado=(int)byte_lectura & (255 -(int)pow(2, (int)(n_bit_a_borrar - (disk-1)*pow(2,16)) % 8));
+          fseek(ptr,-1,SEEK_CUR);
+          fwrite(&byte_actualizado,1,1,ptr);
+          punto += 4;
         }
-
       }
-
+      else if (porte > 2044 ){
+        for (i = 0; i < 2044; i++){
+          unsigned char bit_a_borrar[4];
+          fseek(ptr, punto, SEEK_SET);
+          fread(bit_a_borrar, sizeof(bit_a_borrar), 1, ptr);
+          int n_bit_a_borrar = (int)bit_a_borrar[0]<<24| (int)bit_a_borrar[1]<<16 | (int)bit_a_borrar[2]<<8 |(int)bit_a_borrar[3];
+          byte_escritura=(n_bit_a_borrar - (disk-1)*pow(2,16))/8 + (disk-1)*pow(2,29)+pow(2,13);
+          fseek(ptr,byte_escritura,SEEK_SET);
+          fread(&byte_lectura,1,1,ptr);
+          byte_actualizado=(int)byte_lectura & (255 -(int)pow(2, (int)(n_bit_a_borrar - (disk-1)*pow(2,16)) % 8));
+          fseek(ptr,-1,SEEK_CUR);
+          fwrite(&byte_actualizado,1,1,ptr);
+          punto += 4;
+        }
+        fseek(ptr, punto, SEEK_SET);
+        unsigned char indireccionamiento[4];
+        fread(indireccionamiento, sizeof(punto), 1, ptr);
+        for (i = 0; i < porte - 2044; i++){
+          unsigned char bit_a_borrar[4];
+          fseek(ptr, punto, SEEK_SET);
+          fread(bit_a_borrar, sizeof(bit_a_borrar), 1, ptr);
+          int n_bit_a_borrar = (int)bit_a_borrar[0]<<24| (int)bit_a_borrar[1]<<16 | (int)bit_a_borrar[2]<<8 |(int)bit_a_borrar[3];
+          byte_escritura=(n_bit_a_borrar - (disk-1)*pow(2,16))/8 + (disk-1)*pow(2,29)+pow(2,13);
+          fseek(ptr,byte_escritura,SEEK_SET);
+          fread(&byte_lectura,1,1,ptr);
+          byte_actualizado=(int)byte_lectura & (255 -(int)pow(2, (int)(n_bit_a_borrar - (disk-1)*pow(2,16)) % 8));
+          fseek(ptr,-1,SEEK_CUR);
+          fwrite(&byte_actualizado,1,1,ptr);
+          punto += 4;
+        }
+      }
     }
-
-
-
-
     fclose(ptr);
     return 1;
   }
@@ -457,4 +486,25 @@ int cr_unload(unsigned disk, char* orig, char* dest){
 }
 int cr_load(unsigned disk, char* orig){
     return 1;
+}
+
+
+int calculo_numero(unsigned char buffer[], int iii)
+{
+  int suma = 0;
+  int bloque = 0;
+  unsigned char b;
+  for (int i = 0; i < iii; i++)
+  {
+    b = buffer[i];
+    for(int j = 0; j < 8; j++)
+    {
+      bloque = (8*iii - 8*i - 1) - (j);
+      if ((b>>(7-j)&1) == 1 && bloque < 23)
+      {
+        suma += pow(2, bloque); ///este es el bloque que necesita.
+        }
+      }
+  }
+  return suma;
 }
