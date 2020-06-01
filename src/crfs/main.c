@@ -21,25 +21,19 @@ int main(int argument_count, char** arguments){
     */
   //  cr_ls(2);
     // cr_exists(ROUTE, char* filename);
-    // char qq[3];
-    // qq[0] = 's';
-    // qq[1] = 2;
-    // qq[2] = 3;
-    //
-    // fseek(ptr, 7*32, SEEK_SET);
-    // for (int g = 0; g < 3; g++)
-    // {
-    //   fwrite(qq[g], sizeof(qq[g]), 1, ptr);
-    // }
 
 
+    crFILE* archivo;
+    archivo = cr_open(1, "guides.txt", "r");
 
-    cr_open(1, "aaa.txt", "w");
+    // printf("-------------\n");
+    //cr_ls(1);
+    int aaa[20];
 
-    printf("-------------\n");
-    cr_ls(1);
+    unsigned char buff[300];
+    //unsigned char * buff = ( unsigned char * )malloc( 20 * sizeof( unsigned char ) );
+    cr_read(archivo, buff, 300);
 
-    // cr_read (crFILE* file_desc, void* buffer, int nbytes);
 
     // cr_write(crFILE* file_desc, void* buffer, int nbytes);
 
