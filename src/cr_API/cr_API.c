@@ -226,9 +226,21 @@ crFILE* cr_open(unsigned disk, char* filename, char* mode)
             {
                 if (((b>>(7 - j))&1) == 0)
                 {
+                  if (i != 0 || j != 0)
+                  {
                   bloque_indice = i*8 + j + inicio;
                   encontrado = 0;
+                  uint32_t num2, num3;
+                  num2 = pow(2, 7 - j);
+                  num3 = num2 | buff[0];
+
+                  fseek(ptr, 32*256*65536*(disk - 1) + 8192 + i, SEEK_SET);
+                  unsigned long n2 = num3;
+                  unsigned char bytes[1];
+                  bytes[0] = n2 & 0xFF;
+                  fwrite(&bytes[0], sizeof(bytes[0]), 1, ptr);
                   break;
+                }
                 }
             }
       }

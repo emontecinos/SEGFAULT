@@ -22,11 +22,12 @@ int main(int argument_count, char** arguments){
     // cr_exists(ROUTE, char* filename);
 
 
-    crFILE* archivo;
-    archivo = cr_open(1, "guides.txt", "r");
+    // crFILE* archivo;
+    // archivo = cr_open(1, "guides2.txt", "w");
 
     // printf("-------------\n");
     //cr_ls(1);
+
     int aaa[20];
 
     unsigned char buff[300];
