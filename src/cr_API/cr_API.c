@@ -375,6 +375,7 @@ int cr_read (crFILE* file_desc, void* buffer, int nbytes){
     int en_proceso = 1;
     bloque = (file_desc -> byte_leido) / (256 * 32);
     byte_de_bloque = (file_desc -> byte_leido) - (bloque * 32 * 256);
+    // printf("byte_de_bloque: %i\n", byte_de_bloque);
     /////////Buscar el bloque indice
     FILE *ptr;
     ptr = fopen(PATH, "rb");
@@ -398,10 +399,12 @@ int cr_read (crFILE* file_desc, void* buffer, int nbytes){
       {
           fread(buff, sizeof(buff), 1, ptr);
           bufferr[i + bytes_leidos] = buff[0];
+          // printf("%c", buff[0]);
       }
       bytes_leidos += i;
       // printf("nbytes %i\n", nbytes);
       // printf("bytes_leidos = %i\n", bytes_leidos);
+      file_desc -> byte_leido += bytes_leidos;
       if (file_desc -> size - file_desc -> byte_leido <= bytes_leidos)
       {
         ///no hay mas archivo
