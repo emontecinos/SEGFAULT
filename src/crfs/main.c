@@ -12,13 +12,14 @@ int main(int argument_count, char** arguments){
     cr_mount(arguments[1]);
 
     
-    //cr_load(1,"lala7.txt");
+    cr_load(1,"lala13.txt");
     //cr_ls(1);
     // crFILE* archivo;
     // archivo=cr_open(1,"lala7.txt","r");
     // cr_read(archivo,"aaa",50);
+    //cr_unload(1, "lala10.txt", "/mnt/c/Users/felipe/Desktop/Archivos/");
 
-    cr_unload(1, "lala7.txt", "/mnt/c/Users/felipe/Desktop/Archivos/");
+    cr_unload(1, "lala13.txt", "/mnt/c/Users/felipe/Desktop/Archivos/");
     /*
     cr_bitmap(1, 1);
     cr_bitmap(2, 1);

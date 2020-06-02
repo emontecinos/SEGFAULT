@@ -462,7 +462,7 @@ int actualizar_bitmap(unsigned int bloque_a_escribir,FILE* file){
     unsigned int byte_escritura;
     unsigned char byte_lectura;
     unsigned int saltos_bytes=bloque_relativo;
-    unsigned int contador_saltos=0;
+    unsigned int contador_saltos=1;
     while(saltos_bytes>7){
         saltos_bytes= saltos_bytes/8;
         contador_saltos++;
@@ -482,22 +482,43 @@ int actualizar_bitmap(unsigned int bloque_a_escribir,FILE* file){
     return 1;
 }
 int escribir_bloque_indice(unsigned int bloque_a_escribir,crFILE*file_desc,FILE* file){
-    int bloque = (int)(file_desc->size /8192)+1;// bloque "entero" usado
+    unsigned int bloque = (int)(file_desc->size /8192)+1;// bloque "entero" usado
     unsigned int dir_a_escribir;
-    unsigned int* aux_escritura;
+    unsigned char aux_escritura[4];
     dir_a_escribir=(file_desc->puntero_a_bloque+bloque)*pow(2,13);
-    fprintf(stderr,"dir a escribir: %u\nBloque a escribir: %u\n",dir_a_escribir,bloque_a_escribir);
     fseek(file,dir_a_escribir,SEEK_SET);
-    // unsigned char* b_a_e;
-    // b_a_e=(unsigned char *) bloque_a_escribir;
-    fwrite(&bloque_a_escribir,1,sizeof(bloque_a_escribir),file);
+    for(int i=0; i < 4; i++){
+      aux_escritura[i]=(bloque_a_escribir>>(8*(3-i))&255);
+      fprintf(stderr," Byte escrito dir : %u\n",aux_escritura[i]);
+      fwrite(&aux_escritura[i],1,sizeof(aux_escritura),file);
+    }
+    fprintf(stderr,"dir a escribir: %u\nBloque a escribir: %u\n",dir_a_escribir,bloque_a_escribir);
+    fseek(file,-4,SEEK_CUR);
+    for(int i=0;i<4;i++){
+      fread(&aux_escritura[0],1,1,file);
+      fprintf(stderr,"dir bloque scrita: %u\n",aux_escritura[0]);
+    }
+    
     return 1;
 }
-void actualizar_tamano_archivo(int bytes,crFILE*file_desc, FILE* file){
+void actualizar_tamano_archivo(unsigned long bytes,crFILE*file_desc, FILE* file){
     file_desc->size+=bytes;
-    long long nsize = bytes;
+    unsigned char byte_aux;
+    unsigned char byte_esc[8];
+    fprintf(stderr,"Tamano archivo :%lu\n",bytes);
     fseek(file,(file_desc->puntero_a_bloque*8192)+4,SEEK_SET);//Bloque indice
-    fwrite(&nsize,1,sizeof(nsize),file);
+    for (int i=7;i>-1;i--){
+      byte_aux=bytes>>(i*8)&255;
+      byte_esc[i]=byte_aux;
+
+      fprintf(stderr,"----NUmuero1: %u\n",byte_aux);
+      fwrite(&byte_aux,1,1,file);
+      fseek(file,-1,SEEK_CUR);
+      fread(&byte_aux,1,1,file);
+      fprintf(stderr,"----NUmuero2: %u\n",byte_aux);
+    }
+
+    
     return;
 }
 
@@ -591,7 +612,7 @@ int cr_write(crFILE* file_desc, char* buffer, int nbytes){
     FILE* file = fopen(PATH,"rb+");
     //Cuanto escribir en cada parte
     //Si hay espacio para escribir en indice,
-    unsigned int escritos_indice=0;
+    unsigned long escritos_indice=0;
     if(cant_escribir_indice>0){
         //Escribir en indice
         fseek(file,file_desc->puntero_a_bloque*8192,SEEK_SET);
@@ -602,7 +623,6 @@ int cr_write(crFILE* file_desc, char* buffer, int nbytes){
         bytes[1] = 0;
         bytes[2] = 0;
         bytes[3] = 1;
-        fprintf(stderr,"--------Valor refs: %u\n",bytes[3]);
         for(int k=0;k<4;k++){
           fwrite(&bytes[k],1,1,file);
         }
@@ -613,7 +633,8 @@ int cr_write(crFILE* file_desc, char* buffer, int nbytes){
         while (escritos_indice<cant_escribir_indice){
             unsigned int bloque_a_escribir=0;
             bloque_a_escribir=get_free_block(file_desc->puntero_a_bloque);
-            fprintf(stderr,"Bloque a escribir: %d\n",bloque_a_escribir);
+            // fprintf(stderr,"Bloque a escribir: %d\n",bloque_a_escribir);
+            fprintf(stderr,"Bloque libre: %u\n",bloque_a_escribir);
             //Si puedo escribir
             if(bloque_a_escribir!=-1){
                 //Escribir en cada byte del bloque
@@ -622,9 +643,13 @@ int cr_write(crFILE* file_desc, char* buffer, int nbytes){
                     //Escribir buf
                     unsigned char a_escribir;
                     a_escribir=buffer[byte_a_escribir];
-                    //fprintf(stderr,"A escribir, %c\n",a_escribir);
+                    fprintf(stderr,"A escribir, %c\n",a_escribir);
                     //fprintf(stderr,"escribir indice: %dEscritos indice %d\n",cant_escribir_indice,escritos_indice);
                     fwrite(&a_escribir,1,1,file);
+                    fseek(file,-1,SEEK_CUR);
+                    fread(&a_escribir,1,1,file);
+                    fprintf(stderr,"escrito, %c\n",a_escribir);
+                    // fseek(file,1,SEEK_CUR);
                     byte_a_escribir++;
                     escritos_indice++;
                     if (byte_a_escribir>=nbytes){
@@ -641,7 +666,7 @@ int cr_write(crFILE* file_desc, char* buffer, int nbytes){
             }
         }
     }
-    unsigned int escritos_simple=0;
+    unsigned long escritos_simple=0;
     if(cant_escribir_dir_simple>0){
         //Escribir en bloque dir simple
         unsigned int dir_bloque_dir_simple=file_desc->puntero_a_bloque+8188;//pos del bloque de dir simple; 8192-4
@@ -1061,7 +1086,7 @@ unsigned get_files(char** file_names, unsigned long* file_pointers, unsigned tot
 
 void read_write_data_block(unsigned long pointer, FILE* file, FILE* file_copy, unsigned long used, unsigned long leftover, int offset)
 {
-    char byte;
+    unsigned char byte;
     unsigned long bytes_used, data_pointer;
     //printf("used %lu leftover %lu\n ", used, leftover);
 
@@ -1077,6 +1102,7 @@ void read_write_data_block(unsigned long pointer, FILE* file, FILE* file_copy, u
             data_pointer = data_pointer | (unsigned long) getc(file) << 8*j;}
 
         fseek(file, data_pointer * block_size, SEEK_SET);
+        fprintf(stderr,"--Bloque usado: %lu\n",data_pointer);
 
         if (i == used - 1 & leftover != 0){
             bytes_used =  leftover;}
@@ -1084,7 +1110,7 @@ void read_write_data_block(unsigned long pointer, FILE* file, FILE* file_copy, u
         for (int j = 0; j < bytes_used; j++)
         {
             byte = getc(file);
-            fprintf(stderr,"char a escribir en archivo: %c\n",byte);//4294967295
+            //fprintf(stderr,"char a escribir en archivo: %u\n",byte);//4294967295
             fwrite(&byte, 1, sizeof(char), file_copy);
         }
     }
@@ -1097,9 +1123,11 @@ void write_file(char* name, unsigned long pointer, char* dest)
     fprintf(stderr,"Senal5\n");
     fseek(file, pointer * block_size + 4, SEEK_SET);
     unsigned long size = 0;
-    fprintf(stderr,"indirect used size: %ld\n",size);
+    unsigned int tamano_aux;
     for (int i = 7; -1 < i; i--){
-            size = size | (unsigned long) getc(file) << 8*i;}// Saca el siguiente char de file y 
+            tamano_aux=getc(file);
+            fprintf(stderr,"Tamanoooo: %u\n",tamano_aux);
+            size = size | (unsigned long) tamano_aux << 8*i;}// Saca el siguiente char de file y 
             //lo mueve en bloques de un byte para crear un numero que tiene los 8 primeros chars de file unidos. Por que
 
     unsigned long module      = size % block_size;
@@ -1107,7 +1135,7 @@ void write_file(char* name, unsigned long pointer, char* dest)
     unsigned long blocks_used   = (module == 0) ? size / block_size : (size - module) / block_size + 1;
     unsigned long direct_used   = (blocks_used > 2044) ? 2044 : blocks_used;
     unsigned long indirect_used = (blocks_used - direct_used > 0) ? blocks_used - direct_used : 0;
-    fprintf(stderr,"indirect used size: %ld\n",size);
+    fprintf(stderr,"size: %lu\n",size);
     char dest_name[250];
     strcpy(dest_name, dest);
 
@@ -1125,39 +1153,59 @@ void write_file(char* name, unsigned long pointer, char* dest)
 
     for (int i = 3; i > -1; i--){
         indirect_pointer = indirect_pointer | (unsigned long) getc(file) << 8*i;}
-
+    
     read_write_data_block(indirect_pointer, file, file_copy, indirect_used, leftover, 0);
 
     fclose(file_copy);
     fclose(file);
 }
 
-void transfer_files(unsigned disk_start, char* orig, char* dest)
+int is_softlink_file(char* file_name){
+char backslash = 47;
+int has_backslash = 0, has_char = 0, i = 0;
+
+while(file_name[i] != '\0')
 {
+if(file_name[i] == backslash){
+has_backslash = 1;}
+
+else if (!has_backslash){
+has_char = 1;}
+i++;
+}
+
+return (has_backslash & has_char);
+} 
+
+void transfer_files(unsigned disk_start, char* orig, char* dest)
+{   
     char **file_names = malloc(max_files * sizeof(char*));
     for (int i = 0; i < max_files; i++){
         file_names[i] = malloc(29 * sizeof(char)); }
-
+    
     unsigned long *file_pointers = malloc(max_files * sizeof(unsigned long));
     unsigned total = 0;
     total = get_files(file_names, file_pointers, total, disk_start);
+
     for (int i = 0; i < total; i++)
-    {
-        fprintf(stderr,"COSA COSA %s\n", file_names[i]);
+    {   
         if (orig == NULL){
-            fprintf(stderr,"Senal3\n");
-            write_file(file_names[i], file_pointers[i], dest);}
+            if (!is_softlink_file(file_names[i])){                
+                write_file(file_names[i], file_pointers[i], dest);}
+        }  
 
         else if (strcmp(orig, file_names[i]) == 0){
-          fprintf(stderr,"Senal4\n");  
-            write_file(file_names[i], file_pointers[i], dest);}
+            if (!is_softlink_file(file_names[i])){                
+                write_file(file_names[i], file_pointers[i], dest);}
+        }  
     }
 
-    for (int i = 0; i < max_files; i++){
+    for (int i = 0; i < max_files; i++){ 
         free(file_names[i]);}
     free(file_names);
     free(file_pointers);
 }
+
 
 int cr_unload(unsigned disk, char* orig, char* dest){
     if (disk != 0)
@@ -1236,6 +1284,7 @@ void load_write_file(unsigned disk, char* filename)
     cr_close(cr_file);
     
 }
+
 
 int cr_load(unsigned disk, char* orig){
     if (is_file(orig))
