@@ -38,52 +38,92 @@ void cr_mount(char* diskname){
     return;
 }
 void cr_bitmap(unsigned disk, bool hex){
-
-    unsigned char buffer[65536]; //#bloques en particion
-    char aux_buffer[1];
-    size_t bytes_leidos=0;
-    unsigned int byte_lectura;
-    int bloques_ocupados=0;
-    int bloques_desocupados=0;
-    int aux_bytes_leidos=0;
-    int aux_bit;
-    int pos_buffer=0;
-    FILE* file = fopen(PATH,"rb");
-    if(disk > 0){
-        byte_lectura=(disk-1)*536870912+8192; // tamano particion + un bloque
+    int64_t valor=0;
+    int* leer_disco(unsigned disk,bool hex, int* valores){
+        unsigned char buffer[65536]; //#bloques en particion
+        unsigned char aux_buffer=0;
+        //int aux_buffer;
+        size_t bytes_leidos=0;
+        unsigned int byte_lectura=0;
+        int bloques_ocupados=0;
+        int bloques_desocupados=0;
+        int aux_bytes_leidos=0;
+        int aux_bit=0;
+        int pos_buffer=0;
+        FILE* file = fopen(PATH,"rb");
+        byte_lectura=(disk-1)*pow(2,29)+pow(2,13); // tamano particion + un bloque
         // lectura en bytes
         fseek(file,byte_lectura,SEEK_SET); // puntero lectura desde posicion byte_lectura desde el inicio (SEEK_SET)
         while(bytes_leidos < 8192){
-            aux_bytes_leidos=fread(aux_buffer,1,1,file);
+            aux_bytes_leidos=fread(&aux_buffer,1,1,file); // byte que leo
+            //printf("BYTE: %ld, %u\n",bytes_leidos, aux_buffer);
+            //aux_bytes_leidos=fread(&aux_buffer,1,1,file);
             for (int i =0; i < 8; i++){
-                aux_bit= aux_buffer[0]&1; // and entre el byte leido y 1; al shiftearlo voy bit por bit.
-
+                aux_bit=aux_buffer&128;
+                aux_bit=aux_bit>>=7;
+                //aux_bit= aux_buffer&1; // and entre el byte leido y 1; al shiftearlo voy bit por bit.
+                //fprintf(stderr,"%d\n",aux_bit);
+                
                 if(aux_bit==1){ // aumento el contador
                     bloques_ocupados++;
                 }else {
                     bloques_desocupados++;
                     }
                 buffer[pos_buffer]=aux_bit+'0';
-                aux_buffer[0]>>=1; //shift right en 1.
-                aux_bit++;
+                aux_buffer=aux_buffer<<1;
+                //aux_buffer>>=1;
+                // aux_buffer[0]>>=1; //shift right en 1.
+                //aux_bit++;
                 pos_buffer++;
             }
             bytes_leidos += 1;
         }
-    }else{
-        printf("non\n");
+        fclose(file);
+        if(hex==0){
+            for(int i=0; i < 65536;i++){
+                fprintf(stderr,"%c",buffer[i]);
+                //valor+=pow(2,i); endianness?
+            }
+            //fprintf(stderr,"\n");
+        }else{
+            int aux_valor=0;
+            int resto;
+            for(int i=0; i < 65536;i++){
+                aux_valor+=(buffer[i]-48)*pow(2,3-(i%4));// Ver endianess, 2^resto o 2^i-resto
+                if (i%4==0&&i!=0){
+                    fprintf(stderr,"%X",aux_valor); 
+                    valor+= aux_valor;
+                    aux_valor=0;
+                }
+            }
+        }
+        valores[0]=bloques_ocupados;
+        valores[1]=bloques_desocupados;
+        return valores;
     }
-    // for(int i=0; i < 65536;i++){
-    //     printf("%c",buffer[i]);
-    //     if (i %15==0){
-    //         printf("\n");
-    //     }
-    // }
-    printf("disco: %d\nOcupados: %d Libres: %d\nTotal: %d\n",disk,bloques_ocupados,bloques_desocupados,bloques_ocupados+bloques_desocupados);
-
-    fclose(file);
+    
+    if(disk >0){
+        int arr[2];
+        int* valores=leer_disco(disk,hex,arr);
+        fprintf(stderr,"disco: %d\nOcupados: %d Libres: %d\n",disk,valores[0],valores[1]);
+    }else{
+        int bloques_ocupados[4];
+        int bloques_desocupados[4];
+        int arr[2];
+        for (int i=1;i<5;i++){
+            int* valores =leer_disco(i,hex,arr);
+            bloques_ocupados[i-1]=valores[0];
+            bloques_desocupados[i-1]=valores[1];
+        }
+        for (int i=1;i<5;i++){
+            fprintf(stderr,"disco: %d\nOcupados: %d Libres: %d\n",i,bloques_ocupados[i-1],bloques_desocupados[i-1]);
+        }
+    }
+    // printf("\nValor, %llX\n%lld\n",valor,valor);
+    
     return;
 }
+
 int cr_exists(unsigned disk, char* filename)
 {
     if (disk == 1 || disk == 2 || disk == 3 || disk == 4)
@@ -805,14 +845,10 @@ int cr_close(crFILE* file_desc){
 }
 int cr_rm(unsigned disk, char* filename){
   if(cr_exists(disk, filename)){
-    //printf("%s\n", filename );
+    printf("%s\n", filename );
+    printf("True\n");
     FILE *ptr;
-    if (strchr(filename, '/') != NULL)
-    {
-    }
-
     ptr = fopen(PATH, "rb");
-
     fseek(ptr, (disk-1)*32*256*65536, SEEK_SET);
     int aux;
     int puntero;
@@ -821,41 +857,28 @@ int cr_rm(unsigned disk, char* filename){
     unsigned char nombre[29];
     unsigned char buffer[32];
     unsigned char buffer_destino[3];
-    for (int i = 0; i < 256; i++)
-    {
-
+    for (int i = 0; i < 256; i++){
       fread(buffer, sizeof(buffer), 1, ptr);
-      //printf("%c\n", buffer[3] );
-      if(buffer[0] > 0x7f)
-      {
+      if(buffer[0] > 0x7f){
         memcpy(nombre, &buffer[3], 29 * sizeof(unsigned char));
-        //printf("%c\n", nombre[0] );
-        //fread(nombre, sizeof(nombre), 1, ptr);
         int j;
-        //printf("Nueva palabra\n");
-        for (j = 0; nombre[j] || filename[j]; j++)
-        {
-          //printf("%c\n", orig[j] );
-          //printf("%c\n", nombre[j]);
+        for (j = 0; nombre[j] || filename[j]; j++){
           aux = 1;
-          if (nombre[j] != filename[j])
-          {
+          if (nombre[j] != filename[j]){
             aux = 0;
             break;
           }
         }
-        if (aux == 1)
-        {
+        if (aux == 1){
           buffer_destino[0] = buffer [0];
           buffer_destino[1] = buffer [1];
           buffer_destino[2] = buffer [2];
           buffer [0] = buffer[0]&127;
           int num = (int)buffer[0]<<16| (int)buffer[1]<<8 | (int)buffer[2];
           puntero = num;
-          //printf("Puntero: %d, Nombre: %s\n", puntero, nombre);
+          printf("Puntero: %d, Nombre: %s\n", puntero, nombre);
           aux_puntero_vaciar = 1;
           break;
-
         }
         if(aux_puntero_vaciar == 0){
           puntero_vaciar += 32;
@@ -866,8 +889,6 @@ int cr_rm(unsigned disk, char* filename){
       }
     }
     fclose(ptr);
-
-
     ptr = fopen(PATH, "rb+");
     fseek(ptr, puntero_vaciar, SEEK_SET);
     unsigned char buffer_vacio[32];
@@ -876,123 +897,125 @@ int cr_rm(unsigned disk, char* filename){
       buffer_vacio[i] = 0;
     }
     fwrite(buffer_vacio, sizeof(buffer_vacio), 1, ptr);
-
-    unsigned char cantidad_hardlinks[4];
-    fseek(ptr, 32*256*puntero, SEEK_SET);
-    fread(cantidad_hardlinks, sizeof(cantidad_hardlinks), 1, ptr);
-    int num = (int)cantidad_hardlinks[0]<<24| (int)cantidad_hardlinks[1]<<16 | (int)cantidad_hardlinks[2]<<8 |(int)cantidad_hardlinks[3];
-    //printf("%d\n",num);
-    num -= 1;
-    unsigned char bytes[4];
-    bytes[0] = (num >> 24) & 0xFF;
-    bytes[1] = (num >> 16) & 0xFF;
-    bytes[2] = (num >> 8) & 0xFF;
-    bytes[3] = num & 0xFF;
-    fseek(ptr, 32*256*puntero, SEEK_SET);
-    fwrite(bytes, sizeof(bytes), 1, ptr);
-    fseek(ptr, 32*256*puntero, SEEK_SET);
-    fread(cantidad_hardlinks, sizeof(cantidad_hardlinks), 1, ptr);
-    int nume = (int)bytes[0]<<24| (int)bytes[1]<<16 | (int)bytes[2]<<8 |(int)bytes[3];
-    //printf("%d\n",nume);
-    if(num == 0){
-      int punto = puntero*256*32;
-      unsigned int byte_escritura;
-      unsigned char byte_lectura;
-      int byte_actualizado;
-      byte_escritura=((int)puntero - (disk-1)*65536)/8 + (disk-1)*(int)pow(2,29)+(int)pow(2,13);
-      fseek(ptr,byte_escritura,SEEK_SET);
-      fread(&byte_lectura,1,1,ptr);
-      byte_actualizado=(int)byte_lectura & (255 - (int)pow(2, 7 - (int)(puntero - (disk-1)*65536) % 8));
-      fseek(ptr,-1,SEEK_CUR);
-      fwrite(&byte_actualizado,1,1,ptr);
-
-      punto += 4;
-      unsigned char tamano[8];
-      fseek(ptr, punto ,SEEK_SET);
-      fread(tamano, sizeof(tamano), 1, ptr);
-      uint64_t num2 = calculo_numero(tamano, 8);
-      int porte;
-      porte = num2/(8192);
-      punto += 8;
-      if (porte * 8192 != num2)
-      {
-        porte += 1;
-      }
-      //printf("El disco tiene %d bloques\n", porte);
-      int i;
-      if(porte <= 2044 ){
-        for (i = 0; i < porte; i++){
-          unsigned char bit_a_borrar[4];
+    if (is_softlink_file(filename) == 0){
+      unsigned char cantidad_hardlinks[4];
+      fseek(ptr, 32*256*puntero, SEEK_SET);
+      fread(cantidad_hardlinks, sizeof(cantidad_hardlinks), 1, ptr);
+      int num = (int)cantidad_hardlinks[0]<<24| (int)cantidad_hardlinks[1]<<16 | (int)cantidad_hardlinks[2]<<8 |(int)cantidad_hardlinks[3];
+      printf("%d\n",num);
+      num -= 1;
+      unsigned char bytes[4];
+      bytes[0] = (num >> 24) & 0xFF;
+      bytes[1] = (num >> 16) & 0xFF;
+      bytes[2] = (num >> 8) & 0xFF;
+      bytes[3] = num & 0xFF;
+      fseek(ptr, 32*256*puntero, SEEK_SET);
+      fwrite(bytes, sizeof(bytes), 1, ptr);
+      fseek(ptr, 32*256*puntero, SEEK_SET);
+      fread(cantidad_hardlinks, sizeof(cantidad_hardlinks), 1, ptr);
+      int nume = (int)bytes[0]<<24| (int)bytes[1]<<16 | (int)bytes[2]<<8 |(int)bytes[3];
+      printf("%d\n",nume);
+      if(num == 0){
+        int punto = puntero*256*32;
+        unsigned int byte_escritura;
+        unsigned char byte_lectura;
+        int byte_actualizado;
+        byte_escritura=((int)puntero - (disk-1)*65536)/8 + (disk-1)*(int)pow(2,29)+(int)pow(2,13);
+        fseek(ptr,byte_escritura,SEEK_SET);
+        fread(&byte_lectura,1,1,ptr);
+        byte_actualizado=(int)byte_lectura & (255 - (int)pow(2, 7 - (int)(puntero - (disk-1)*65536) % 8));
+        fseek(ptr,-1,SEEK_CUR);
+        fwrite(&byte_actualizado,1,1,ptr);
+        punto += 4;
+        unsigned char tamano[8];
+        fseek(ptr, punto ,SEEK_SET);
+        fread(tamano, sizeof(tamano), 1, ptr);
+        uint64_t num2 = calculo_numero(tamano, 8);
+        int porte;
+        porte = num2/(8192);
+        punto += 8;
+        if (porte * 8192 != num2){
+          porte += 1;
+        }
+        printf("El disco tiene %d bloques\n", porte);
+        int i;
+        if(porte <= 2044 ){
+          for (i = 0; i < porte; i++){
+            unsigned char bit_a_borrar[4];
+            fseek(ptr, punto, SEEK_SET);
+            fread(bit_a_borrar, sizeof(bit_a_borrar), 1, ptr);
+            int n_bit_a_borrar = (int)bit_a_borrar[0]<<24| (int)bit_a_borrar[1]<<16 | (int)bit_a_borrar[2]<<8 |(int)bit_a_borrar[3];
+            byte_escritura=(n_bit_a_borrar - (disk-1)*(int)pow(2,16))/8 + (disk-1)*(int)pow(2,29)+(int)pow(2,13);
+            fseek(ptr,byte_escritura,SEEK_SET);
+            fread(&byte_lectura,1,1,ptr);
+            unsigned char  int_qliao[1];
+            int_qliao[0] = (255 -(int)pow(2, 7 - (int)((n_bit_a_borrar - (disk-1)*(int)pow(2,16)) % 8)));
+            byte_actualizado= byte_lectura & int_qliao[0];
+            fseek(ptr,byte_escritura,SEEK_SET);
+            fwrite(&byte_actualizado,1,1,ptr);
+            punto += 4;
+          }
+        }
+        else if (porte > 2044 ){
+          for (i = 0; i < 2044; i++){
+            unsigned char bit_a_borrar[4];
+            fseek(ptr, punto, SEEK_SET);
+            fread(bit_a_borrar, sizeof(bit_a_borrar), 1, ptr);
+            int n_bit_a_borrar = (int)bit_a_borrar[0]<<24| (int)bit_a_borrar[1]<<16 | (int)bit_a_borrar[2]<<8 |(int)bit_a_borrar[3];
+            byte_escritura=(n_bit_a_borrar - (disk-1)*(int)pow(2,16))/8 + (disk-1)*(int)pow(2,29)+(int)pow(2,13);
+            fseek(ptr,byte_escritura,SEEK_SET);
+            fread(&byte_lectura,1,1,ptr);
+            unsigned char  intq[1];
+            intq[0] = (255 -(int)pow(2, 7 - (int)((n_bit_a_borrar - (disk-1)*(int)pow(2,16)) % 8)));
+            byte_actualizado= byte_lectura & intq[0];
+            fseek(ptr,byte_escritura,SEEK_SET);
+            fwrite(&byte_actualizado,1,1,ptr);
+            punto += 4;
+          }
           fseek(ptr, punto, SEEK_SET);
-          fread(bit_a_borrar, sizeof(bit_a_borrar), 1, ptr);
-          int n_bit_a_borrar = (int)bit_a_borrar[0]<<24| (int)bit_a_borrar[1]<<16 | (int)bit_a_borrar[2]<<8 |(int)bit_a_borrar[3];
-          byte_escritura=(n_bit_a_borrar - (disk-1)*(int)pow(2,16))/8 + (disk-1)*(int)pow(2,29)+(int)pow(2,13);
-          fseek(ptr,byte_escritura,SEEK_SET);
-          fread(&byte_lectura,1,1,ptr);
-          unsigned char  int_qliao[1];
-          int_qliao[0] = (255 -(int)pow(2, 7 - (int)((n_bit_a_borrar - (disk-1)*(int)pow(2,16)) % 8)));
-          byte_actualizado= byte_lectura & int_qliao[0];
-          fseek(ptr,byte_escritura,SEEK_SET);
-          fwrite(&byte_actualizado,1,1,ptr);
-          punto += 4;
+          unsigned char indireccionamiento[4];
+          fread(indireccionamiento, sizeof(indireccionamiento), 1, ptr);
+          uint32_t n_indireccionamiento = (int)indireccionamiento[0]<<24| (int)indireccionamiento[1]<<16
+          | (int)indireccionamiento[2]<<8 |(int)indireccionamiento[3];
+          for (i = 0; i < porte - 2044; i++){
+            unsigned char bit_a_borrar[4];
+            fseek(ptr, n_indireccionamiento, SEEK_SET);
+            fread(bit_a_borrar, sizeof(bit_a_borrar), 1, ptr);
+            int n_bit_a_borrar = (int)bit_a_borrar[0]<<24| (int)bit_a_borrar[1]<<16 | (int)bit_a_borrar[2]<<8 |(int)bit_a_borrar[3];
+            byte_escritura=(n_bit_a_borrar - (disk-1)*(int)pow(2,16))/8 + (disk-1)*(int)pow(2,29)+(int)pow(2,13);
+            fseek(ptr,byte_escritura,SEEK_SET);
+            fread(&byte_lectura,1,1,ptr);
+            byte_actualizado=byte_lectura & (255 -(int)pow(2, 7 - (int)(n_bit_a_borrar - (disk-1)*(int)pow(2,16)) % 8));
+            fseek(ptr,-1,SEEK_CUR);
+            fwrite(&byte_actualizado,1,1,ptr);
+            n_indireccionamiento += 4;
+          }
         }
       }
-      else if (porte > 2044 ){
-        for (i = 0; i < 2044; i++){
-          unsigned char bit_a_borrar[4];
-          fseek(ptr, punto, SEEK_SET);
-          fread(bit_a_borrar, sizeof(bit_a_borrar), 1, ptr);
-          int n_bit_a_borrar = (int)bit_a_borrar[0]<<24| (int)bit_a_borrar[1]<<16 | (int)bit_a_borrar[2]<<8 |(int)bit_a_borrar[3];
-          byte_escritura=(n_bit_a_borrar - (disk-1)*(int)pow(2,16))/8 + (disk-1)*(int)pow(2,29)+(int)pow(2,13);
-          fseek(ptr,byte_escritura,SEEK_SET);
-          fread(&byte_lectura,1,1,ptr);
-          unsigned char  intq[1];
-          intq[0] = (255 -(int)pow(2, 7 - (int)((n_bit_a_borrar - (disk-1)*(int)pow(2,16)) % 8)));
-          byte_actualizado= byte_lectura & intq[0];
-          fseek(ptr,byte_escritura,SEEK_SET);
-          fwrite(&byte_actualizado,1,1,ptr);
-          punto += 4;
-        }
-        fseek(ptr, punto, SEEK_SET);
-        unsigned char indireccionamiento[4];
-        fread(indireccionamiento, sizeof(indireccionamiento), 1, ptr);
-        uint32_t n_indireccionamiento = (int)indireccionamiento[0]<<24| (int)indireccionamiento[1]<<16
-        | (int)indireccionamiento[2]<<8 |(int)indireccionamiento[3];
-        for (i = 0; i < porte - 2044; i++){
-          unsigned char bit_a_borrar[4];
-          fseek(ptr, n_indireccionamiento, SEEK_SET);
-          fread(bit_a_borrar, sizeof(bit_a_borrar), 1, ptr);
-          int n_bit_a_borrar = (int)bit_a_borrar[0]<<24| (int)bit_a_borrar[1]<<16 | (int)bit_a_borrar[2]<<8 |(int)bit_a_borrar[3];
-          byte_escritura=(n_bit_a_borrar - (disk-1)*(int)pow(2,16))/8 + (disk-1)*(int)pow(2,29)+(int)pow(2,13);
-          fseek(ptr,byte_escritura,SEEK_SET);
-          fread(&byte_lectura,1,1,ptr);
-          byte_actualizado=byte_lectura & (255 -(int)pow(2, 7 - (int)(n_bit_a_borrar - (disk-1)*(int)pow(2,16)) % 8));
-          fseek(ptr,-1,SEEK_CUR);
-          fwrite(&byte_actualizado,1,1,ptr);
-          n_indireccionamiento += 4;
-        }
-      }
+      fclose(ptr);
+      return 1;
     }
-    fclose(ptr);
-    return 1;
+    else{
+      fclose(ptr);
+      return 1;
+    }
   }
   else{
     printf("El archivo %s no existe.\n", filename);
-    return 1;
+    return NULL;
   }
 }
 int cr_hardlink(unsigned disk, char* orig, char* dest){
   if(cr_exists(disk, orig)){
-    printf("860 %s\n", orig );
+    printf("%s\n", orig );
     printf("True\n");
     FILE *ptr;
     if (strchr(orig, '/') != NULL)
     {
-    printf("aaaaaa\n");
+    printf("El archivo %s es un softlink\n", orig);
+    return NULL;
     }
-
     ptr = fopen(PATH, "rb");
-
     fseek(ptr, (disk-1)*32*256*65536, SEEK_SET);
     int aux;
     int puntero;
@@ -1001,54 +1024,41 @@ int cr_hardlink(unsigned disk, char* orig, char* dest){
     unsigned char nombre[29];
     unsigned char buffer[32];
     unsigned char buffer_destino[3];
-    for (int i = 0; i < 256; i++)
-    {
-
+    for (int i = 0; i < 256; i++){
       fread(buffer, sizeof(buffer), 1, ptr);
-      //printf("%c\n", buffer[3] );
       if(buffer[0] > 0x7f)
       {
         memcpy(nombre, &buffer[3], 29 * sizeof(unsigned char));
-        //printf("%c\n", nombre[0] );
-        //fread(nombre, sizeof(nombre), 1, ptr);
         int j;
-        //printf("Nueva palabra\n");
-        for (j = 0; nombre[j] || orig[j]; j++)
-        {
-          //printf("%c\n", orig[j] );
-          //printf("%c\n", nombre[j]);
+        for (j = 0; nombre[j] || orig[j]; j++){
           aux = 1;
-          if (nombre[j] != orig[j])
-          {
+          if (nombre[j] != orig[j]){
             aux = 0;
             break;
           }
         }
-        if (aux == 1)
-        {
+        if (aux == 1){
           buffer_destino[0] = buffer [0];
           buffer_destino[1] = buffer [1];
           buffer_destino[2] = buffer [2];
           buffer [0] = buffer[0]&127;
           int num = (int)buffer[0]<<16| (int)buffer[1]<<8 | (int)buffer[2];
           puntero = num;
-          // printf("Puntero: %d, Nombre: %s\n", puntero, nombre);
-
+          printf("Puntero: %d, Nombre: %s\n", puntero, nombre);
         }
         if(aux_puntero_nuevo == 0){
           puntero_nuevo_link += 32;
         }
       }
       else if (buffer[0] <=  0x7f && aux_puntero_nuevo == 0){
-        // printf("%i\n", puntero_nuevo_link);
+        printf("%i\n", puntero_nuevo_link);
         aux_puntero_nuevo = 1;
       }
     }
     fclose(ptr);
     if(aux_puntero_nuevo == 0){
       printf("No quedá memoria en el disco\n");
-
-      return 1;
+      return NULL;
     }
     else{
       ptr = fopen(PATH, "rb+");
@@ -1056,15 +1066,12 @@ int cr_hardlink(unsigned disk, char* orig, char* dest){
       fwrite(buffer_destino, 1, 3, ptr);
       fwrite(dest, strlen(dest), 1, ptr);
       fclose(ptr);
-
       unsigned char cantidad_hardlinks[4];
       ptr = fopen(PATH, "rb+");
-
-
       fseek(ptr, 32*256*puntero, SEEK_SET);
       fread(cantidad_hardlinks, sizeof(cantidad_hardlinks), 1, ptr);
       int num = (int)cantidad_hardlinks[0]<<24| (int)cantidad_hardlinks[1]<<16 | (int)cantidad_hardlinks[2]<<8 |(int)cantidad_hardlinks[3];
-      // printf("%d\n",num);
+      printf("%d\n",num);
       num += 1;
       unsigned char bytes[4];
       bytes[0] = (num >> 24) & 0xFF;
@@ -1076,19 +1083,24 @@ int cr_hardlink(unsigned disk, char* orig, char* dest){
       fseek(ptr, 32*256*puntero, SEEK_SET);
       fread(cantidad_hardlinks, sizeof(cantidad_hardlinks), 1, ptr);
       int nume = (int)bytes[0]<<24| (int)bytes[1]<<16 | (int)bytes[2]<<8 |(int)bytes[3];
-      printf("953 %d\n",nume);
+      printf("%d\n",nume);
       return 1;
     }
   }
   else{
     printf("El archivo %s no existe\n", orig);
-    return 1;
+    return NULL;
   }
 }
 int cr_softlink(unsigned disk_orig, unsigned disk_dest, char* orig, char* dest){
   if(orig != dest){
     printf("El archivo %s es distinto de %s\n", orig, dest);
-    return 1;
+    return NULL;
+  }
+  else if (strchr(orig, '/') != NULL)
+  {
+  printf("El archivo %s es un softlink\n", orig);
+  return NULL;
   }
 
   else if(cr_exists(disk_orig, orig)){
@@ -1098,7 +1110,7 @@ int cr_softlink(unsigned disk_orig, unsigned disk_dest, char* orig, char* dest){
     sprintf(str_dest, "%d", disk_orig);
     strcat(str_dest, "/");
     strcat(str_dest, dest);
-    printf("975 %s\n", str_dest );
+    printf("%s\n", str_dest );
     fseek(ptr, (disk_dest-1)*32*256*65536, SEEK_SET);
     unsigned char buffer2[32];
     int aux2 = 0;
@@ -1106,7 +1118,6 @@ int cr_softlink(unsigned disk_orig, unsigned disk_dest, char* orig, char* dest){
     for (int i = 0; i < 256; i++)
     {
       fread(buffer2, sizeof(buffer2), 1, ptr);
-      //printf("%c\n", buffer[3] );
       if(buffer2[0] <= 0x7f && aux2 == 0){
         aux2 = 1;
         break;
@@ -1128,7 +1139,7 @@ int cr_softlink(unsigned disk_orig, unsigned disk_dest, char* orig, char* dest){
   }
   else{
     printf("El archivo %s no existe.\n", orig);
-    return 1;
+    return NULL;
   }
 }
 unsigned get_files(char** file_names, unsigned long* file_pointers, unsigned total, unsigned long disk_start)
