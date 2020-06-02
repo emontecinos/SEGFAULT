@@ -853,7 +853,7 @@ int cr_rm(unsigned disk, char* filename){
   }
   else{
     printf("El archivo %s no existe.\n", filename);
-    return 1;
+    return NULL;
   }
 }
 int cr_hardlink(unsigned disk, char* orig, char* dest){
@@ -864,7 +864,7 @@ int cr_hardlink(unsigned disk, char* orig, char* dest){
     if (strchr(orig, '/') != NULL)
     {
     printf("El archivo %s es un softlink\n", orig);
-    return 1;
+    return NULL;
     }
     ptr = fopen(PATH, "rb");
     fseek(ptr, (disk-1)*32*256*65536, SEEK_SET);
@@ -909,7 +909,7 @@ int cr_hardlink(unsigned disk, char* orig, char* dest){
     fclose(ptr);
     if(aux_puntero_nuevo == 0){
       printf("No quedá memoria en el disco\n");
-      return 1;
+      return NULL;
     }
     else{
       ptr = fopen(PATH, "rb+");
@@ -940,18 +940,18 @@ int cr_hardlink(unsigned disk, char* orig, char* dest){
   }
   else{
     printf("El archivo %s no existe\n", orig);
-    return 1;
+    return NULL;
   }
 }
 int cr_softlink(unsigned disk_orig, unsigned disk_dest, char* orig, char* dest){
   if(orig != dest){
     printf("El archivo %s es distinto de %s\n", orig, dest);
-    return 1;
+    return NULL;
   }
   else if (strchr(orig, '/') != NULL)
   {
   printf("El archivo %s es un softlink\n", orig);
-  return 1;
+  return NULL;
   }
 
   else if(cr_exists(disk_orig, orig)){
@@ -990,7 +990,7 @@ int cr_softlink(unsigned disk_orig, unsigned disk_dest, char* orig, char* dest){
   }
   else{
     printf("El archivo %s no existe.\n", orig);
-    return 1;
+    return NULL;
   }
 }
 unsigned get_files(char** file_names, unsigned long* file_pointers, unsigned total, unsigned long disk_start)
