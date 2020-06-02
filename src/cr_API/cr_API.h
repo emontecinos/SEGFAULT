@@ -18,14 +18,14 @@ typedef struct crFILE
     int cant_bloques;
     int existe;
     int byte_leido;
-
+  
 }crFILE;
 char* PATH;
 
 void cr_mount(char* diskname);
 void cr_bitmap(unsigned disk, bool hex);
 int cr_exists(unsigned disk, char* filename);
-int cr_write(crFILE* file_desc, char* buffer, int nbytes);
+int cr_write(crFILE* file_desc,char* buffer, int nbytes);
 int cr_close(crFILE* file_desc);
 
 

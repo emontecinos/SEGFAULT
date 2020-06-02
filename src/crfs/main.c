@@ -18,37 +18,50 @@ int main(int argument_count, char** arguments){
     cr_bitmap(3, 1);
     cr_bitmap(4, 1);
     */
-
+  //  cr_ls(2);
     // cr_exists(ROUTE, char* filename);
 
-    // cr_ls(ROUTE);
 
-    // cr_open(ROUTE, char* filename, char mode);
+    // crFILE* archivo;
+    // archivo = cr_open(1, "guides2.txt", "w");
 
-    // cr_read (crFILE* file_desc, void* buffer, int nbytes);
+    // printf("-------------\n");
+    //cr_ls(1);
+
+    int aaa[20];
+
+    unsigned char buff[300];
+    //unsigned char * buff = ( unsigned char * )malloc( 20 * sizeof( unsigned char ) );
+    int aaaaaa;
+    aaaaaa = cr_read(archivo, buff, 300);
+    //printf("aaaa %i\n", aaaaaa);
+    cr_read(archivo, buff, 200);
+    free(archivo);
+
 
     // cr_write(crFILE* file_desc, void* buffer, int nbytes);
 
     // cr_close(crFILE* file_desc);
 
-    //cr_bitmap(1, 1);
-    //cr_rm(4, "1/Baroque.mp3");
-    //cr_ls(1);
-    //cr_bitmap(1, 1);
+    // cr_bitmap(1, 1);
+    // cr_rm(1, "Baroque.mp3");
+    // cr_ls(1);
+    // cr_bitmap(1, 1);
 
 
-    //cr_hardlink(4, "1/Baroque.mp3", "destino.mp3");
+    //cr_hardlink(2, "yes.mp3", "destino.mp3");
 
 
-    //cr_softlink(4, 4, "1/Baroque.mp3", "1/Baroque.mp3");
-
-    //cr_load(1, "lala.txt");
-
-    cr_ls(4);
-
-    //cr_unload(1, "lala.txt", "/mnt/c/Users/reyza/Desktop/");
+    //cr_softlink(2, 4, "yes.mp3", "yes.mp3");
 
 
+
+    //cr_softlink(1, 4, "guides.txt", "guides.txt");
+
+
+    // cr_unload(ROUTE, char* orig, char* dest);
+
+    // cr_load(ROUTE, char* orig);
 
 
 
