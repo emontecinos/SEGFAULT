@@ -18,7 +18,7 @@ typedef struct crFILE
     int cant_bloques;
     int existe;
     int byte_leido;
-
+  
 }crFILE;
 char* PATH;
 
