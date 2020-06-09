@@ -33,75 +33,97 @@ uint64_t calculo_numero(unsigned char buffer[], int iii)
   return suma;
 }
 
+int is_softlink_file(char* file_name)
+  {
+    char backslash = 47;
+    int has_backslash = 0, has_char = 0, i = 0;
+
+    while(file_name[i] != '\0')
+    {
+    if(file_name[i] == backslash){
+    has_backslash = 1;}
+
+    else if (!has_backslash){
+    has_char = 1;}
+    i++;
+    }
+
+    return (has_backslash & has_char);
+  }
+
 void cr_mount(char* diskname){
     PATH = diskname;
     return;
 }
+
+int* leer_disco(unsigned disk,bool hex, int* valores){
+    int64_t valor=0;
+    unsigned char buffer[65536]; //#bloques en particion
+    unsigned char aux_buffer=0;
+    //int aux_buffer;
+    size_t bytes_leidos=0;
+    unsigned int byte_lectura=0;
+    int bloques_ocupados=0;
+    int bloques_desocupados=0;
+    int aux_bytes_leidos=0;
+    int aux_bit=0;
+    int pos_buffer=0;
+    FILE* file = fopen(PATH,"rb");
+    byte_lectura=(disk-1)*pow(2,29)+pow(2,13); // tamano particion + un bloque
+    // lectura en bytes
+    fseek(file,byte_lectura,SEEK_SET); // puntero lectura desde posicion byte_lectura desde el inicio (SEEK_SET)
+    while(bytes_leidos < 8192){
+        aux_bytes_leidos=fread(&aux_buffer,1,1,file); // byte que leo
+        //printf("BYTE: %ld, %u\n",bytes_leidos, aux_buffer);
+        //aux_bytes_leidos=fread(&aux_buffer,1,1,file);
+        for (int i =0; i < 8; i++){
+            aux_bit=aux_buffer&128;
+            aux_bit=aux_bit>>=7;
+            //aux_bit= aux_buffer&1; // and entre el byte leido y 1; al shiftearlo voy bit por bit.
+            //fprintf(stderr,"%d\n",aux_bit);
+
+            if(aux_bit==1){ // aumento el contador
+                bloques_ocupados++;
+            }else {
+                bloques_desocupados++;
+                }
+            buffer[pos_buffer]=aux_bit+'0';
+            aux_buffer=aux_buffer<<1;
+            //aux_buffer>>=1;
+            // aux_buffer[0]>>=1; //shift right en 1.
+            //aux_bit++;
+            pos_buffer++;
+        }
+        bytes_leidos += 1;
+    }
+    fclose(file);
+    if(hex==0){
+        for(int i=0; i < 65536;i++){
+            fprintf(stderr,"%c",buffer[i]);
+            //valor+=pow(2,i); endianness?
+        }
+        //fprintf(stderr,"\n");
+    }else{
+        int aux_valor=0;
+        int resto;
+        for(int i=0; i < 65536;i++){
+            aux_valor+=(buffer[i]-48)*pow(2,3-(i%4));// Ver endianess, 2^resto o 2^i-resto
+            if (i%4==0&&i!=0){
+                fprintf(stderr,"%X",aux_valor);
+                valor+= aux_valor;
+                aux_valor=0;
+            }
+        }
+    }
+    valores[0]=bloques_ocupados;
+    valores[1]=bloques_desocupados;
+    return valores;
+}
+
 void cr_bitmap(unsigned disk, bool hex){
     int64_t valor=0;
-    int* leer_disco(unsigned disk,bool hex, int* valores){
-        unsigned char buffer[65536]; //#bloques en particion
-        unsigned char aux_buffer=0;
-        //int aux_buffer;
-        size_t bytes_leidos=0;
-        unsigned int byte_lectura=0;
-        int bloques_ocupados=0;
-        int bloques_desocupados=0;
-        int aux_bytes_leidos=0;
-        int aux_bit=0;
-        int pos_buffer=0;
-        FILE* file = fopen(PATH,"rb");
-        byte_lectura=(disk-1)*pow(2,29)+pow(2,13); // tamano particion + un bloque
-        // lectura en bytes
-        fseek(file,byte_lectura,SEEK_SET); // puntero lectura desde posicion byte_lectura desde el inicio (SEEK_SET)
-        while(bytes_leidos < 8192){
-            aux_bytes_leidos=fread(&aux_buffer,1,1,file); // byte que leo
-            //printf("BYTE: %ld, %u\n",bytes_leidos, aux_buffer);
-            //aux_bytes_leidos=fread(&aux_buffer,1,1,file);
-            for (int i =0; i < 8; i++){
-                aux_bit=aux_buffer&128;
-                aux_bit=aux_bit>>=7;
-                //aux_bit= aux_buffer&1; // and entre el byte leido y 1; al shiftearlo voy bit por bit.
-                //fprintf(stderr,"%d\n",aux_bit);
-                
-                if(aux_bit==1){ // aumento el contador
-                    bloques_ocupados++;
-                }else {
-                    bloques_desocupados++;
-                    }
-                buffer[pos_buffer]=aux_bit+'0';
-                aux_buffer=aux_buffer<<1;
-                //aux_buffer>>=1;
-                // aux_buffer[0]>>=1; //shift right en 1.
-                //aux_bit++;
-                pos_buffer++;
-            }
-            bytes_leidos += 1;
-        }
-        fclose(file);
-        if(hex==0){
-            for(int i=0; i < 65536;i++){
-                fprintf(stderr,"%c",buffer[i]);
-                //valor+=pow(2,i); endianness?
-            }
-            //fprintf(stderr,"\n");
-        }else{
-            int aux_valor=0;
-            int resto;
-            for(int i=0; i < 65536;i++){
-                aux_valor+=(buffer[i]-48)*pow(2,3-(i%4));// Ver endianess, 2^resto o 2^i-resto
-                if (i%4==0&&i!=0){
-                    fprintf(stderr,"%X",aux_valor); 
-                    valor+= aux_valor;
-                    aux_valor=0;
-                }
-            }
-        }
-        valores[0]=bloques_ocupados;
-        valores[1]=bloques_desocupados;
-        return valores;
-    }
-    
+
+
     if(disk >0){
         int arr[2];
         int* valores=leer_disco(disk,hex,arr);
@@ -120,7 +142,7 @@ void cr_bitmap(unsigned disk, bool hex){
         }
     }
     // printf("\nValor, %llX\n%lld\n",valor,valor);
-    
+
     return;
 }
 
@@ -630,7 +652,7 @@ int escribir_bloque_indice(unsigned int bloque_a_escribir,crFILE*file_desc,FILE*
       fread(&aux_escritura[0],1,1,file);
       fprintf(stderr,"dir bloque scrita: %u\n",aux_escritura[0]);
     }
-    
+
     return 1;
 }
 void actualizar_tamano_archivo(unsigned long bytes,crFILE*file_desc, FILE* file){
@@ -650,7 +672,7 @@ void actualizar_tamano_archivo(unsigned long bytes,crFILE*file_desc, FILE* file)
       fprintf(stderr,"----NUmuero2: %u\n",byte_aux);
     }
 
-    
+
     return;
 }
 
@@ -758,7 +780,7 @@ int cr_write(crFILE* file_desc, char* buffer, int nbytes){
         for(int k=0;k<4;k++){
           fwrite(&bytes[k],1,1,file);
         }
-        
+
 
         //Bytes a escbirir
 
@@ -1164,7 +1186,7 @@ unsigned get_files(char** file_names, unsigned long* file_pointers, unsigned tot
         splited_pointer[2] = getc(file);
         for (int j = 0; j<29; j++){
           name[j] =  getc(file);
-          
+
           //Ciclo se ejecuta 8192/32 * 29 veces
           // Por que?
           // quizas con un fseek en el byte inicial del nombre
@@ -1179,8 +1201,8 @@ unsigned get_files(char** file_names, unsigned long* file_pointers, unsigned tot
           fprintf(stderr,"1042, file names: %s\n",file_names[i]);
           file_pointers[i] = pointer;
           total++;
-          
-      }     
+
+      }
     }
     fclose(file);
     fprintf(stderr,"1056 TOTAL: %d\n",total);
@@ -1230,7 +1252,7 @@ void write_file(char* name, unsigned long pointer, char* dest)
     for (int i = 7; -1 < i; i--){
             tamano_aux=getc(file);
             fprintf(stderr,"Tamanoooo: %u\n",tamano_aux);
-            size = size | (unsigned long) tamano_aux << 8*i;}// Saca el siguiente char de file y 
+            size = size | (unsigned long) tamano_aux << 8*i;}// Saca el siguiente char de file y
             //lo mueve en bloques de un byte para crear un numero que tiene los 8 primeros chars de file unidos. Por que
 
     unsigned long module      = size % block_size;
@@ -1256,54 +1278,39 @@ void write_file(char* name, unsigned long pointer, char* dest)
 
     for (int i = 3; i > -1; i--){
         indirect_pointer = indirect_pointer | (unsigned long) getc(file) << 8*i;}
-    
+
     read_write_data_block(indirect_pointer, file, file_copy, indirect_used, leftover, 0);
 
     fclose(file_copy);
     fclose(file);
 }
 
-int is_softlink_file(char* file_name){
-char backslash = 47;
-int has_backslash = 0, has_char = 0, i = 0;
 
-while(file_name[i] != '\0')
-{
-if(file_name[i] == backslash){
-has_backslash = 1;}
-
-else if (!has_backslash){
-has_char = 1;}
-i++;
-}
-
-return (has_backslash & has_char);
-} 
 
 void transfer_files(unsigned disk_start, char* orig, char* dest)
-{   
+{
     char **file_names = malloc(max_files * sizeof(char*));
     for (int i = 0; i < max_files; i++){
         file_names[i] = malloc(29 * sizeof(char)); }
-    
+
     unsigned long *file_pointers = malloc(max_files * sizeof(unsigned long));
     unsigned total = 0;
     total = get_files(file_names, file_pointers, total, disk_start);
 
     for (int i = 0; i < total; i++)
-    {   
+    {
         if (orig == NULL){
-            if (!is_softlink_file(file_names[i])){                
+            if (!is_softlink_file(file_names[i])){
                 write_file(file_names[i], file_pointers[i], dest);}
-        }  
+        }
 
         else if (strcmp(orig, file_names[i]) == 0){
-            if (!is_softlink_file(file_names[i])){                
+            if (!is_softlink_file(file_names[i])){
                 write_file(file_names[i], file_pointers[i], dest);}
-        }  
+        }
     }
 
-    for (int i = 0; i < max_files; i++){ 
+    for (int i = 0; i < max_files; i++){
         free(file_names[i]);}
     free(file_names);
     free(file_pointers);
@@ -1347,7 +1354,7 @@ int is_file(char* string)
 void load_write_file(unsigned disk, char* filename)
 {
     FILE* file = fopen(filename, "rb");
-    
+
 
     fseek(file, 0, SEEK_END);
     unsigned size = ftell(file);
@@ -1375,17 +1382,17 @@ void load_write_file(unsigned disk, char* filename)
             unsigned char f;
             f = getc(file);
             buffer[j]=f;
-            
+
             //fprintf(stderr,"Char_a_escribir: %c\n",buffer[j]);
             }
-            
+
         cr_write(cr_file, buffer, bytes_used);
     }
-    
+
     free(buffer);
     fclose(file);
     cr_close(cr_file);
-    
+
 }
 
 
