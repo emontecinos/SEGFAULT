@@ -12,56 +12,107 @@ int main(int argument_count, char** arguments){
     cr_mount(arguments[1]);
 
 
+    // cr_hardlink y cr_rm agrgeando harlink en partición 2 y agregando
+
     /*
-    cr_bitmap(1, 1);
-    cr_bitmap(2, 1);
-    cr_bitmap(3, 1);
-    cr_bitmap(4, 1);
+    printf("---------Agregar un Hardlink-----------\n");
+    // Agregar un hardlink bien
+    cr_ls(2);
+    cr_hardlink(2, "yes.mp3", "destino.mp3");
+    cr_ls(2);
+
+    printf("----------Agregar un Hardlink con el nombre mal escrito-----------\n");
+    // Agregar un hardlink con nombre mal escrito
+    cr_ls(2);
+    cr_hardlink(2, "yess.mp3", "destino2.mp3");
+    cr_ls(2);
+
+    // Borrar uno de los archivos
+    printf("---------Borrar un Hardlink pero no todas las referencias----------\n");
+    cr_bitmap(2, 0);
+    cr_ls(2);
+    cr_rm(2, "yes.mp3");
+    cr_ls(2);
+    cr_bitmap(2, 0);
+
+    //Borrar el archivo completo
+    printf("---------Borrar un Hardlink y todas las referencias----------\n");
+    cr_ls(2);
+    cr_rm(2, "destino.mp3");
+    cr_ls(2);
+    cr_bitmap(2, 0);
+
+    // Agregar un hardlink a us softlink
+    cr_ls(4);
+    printf("---------Agregar un hardlink a un softlink----------\n");
+    cr_hardlink(4, "1/Baroque.mp3", "destino2.mp3");
+    cr_ls(4);
     */
-  //  cr_ls(2);
-    // cr_exists(ROUTE, char* filename);
-
-
-    // crFILE* archivo;
-    // archivo = cr_open(1, "guides2.txt", "w");
-
-    // printf("-------------\n");
-    //cr_ls(1);
-
-    int aaa[20];
-
-    unsigned char buff[300];
-    //unsigned char * buff = ( unsigned char * )malloc( 20 * sizeof( unsigned char ) );
-    int aaaaaa;
-    aaaaaa = cr_read(archivo, buff, 300);
-    //printf("aaaa %i\n", aaaaaa);
-    cr_read(archivo, buff, 200);
-    free(archivo);
-
-
-    // cr_write(crFILE* file_desc, void* buffer, int nbytes);
-
-    // cr_close(crFILE* file_desc);
-
-    // cr_bitmap(1, 1);
-    // cr_rm(1, "Baroque.mp3");
-    // cr_ls(1);
-    // cr_bitmap(1, 1);
-
-
-    //cr_hardlink(2, "yes.mp3", "destino.mp3");
-
-
-    //cr_softlink(2, 4, "yes.mp3", "yes.mp3");
 
 
 
-    //cr_softlink(1, 4, "guides.txt", "guides.txt");
+
+    /*
+    // cr_rm con los hardlinks de la partición 3
+    printf("---------Borrar todas las referencias de un hardlink una por una----------\n");
+    cr_ls(3);
+    cr_rm(3, "Program in C.mkv");
+    cr_ls(3);
+    cr_bitmap(3, 0);
+    cr_rm(3, "Program.mkv");
+    cr_ls(3);
+    cr_bitmap(3, 0);
+    cr_rm(3, "in.mkv");
+    cr_ls(3);
+    cr_bitmap(3, 0);
+    cr_rm(3, "C.mkv");
+    cr_ls(3);
+    cr_bitmap(3, 0);
+
+    printf("---------Borrar un hardlink con el nombre mal escrito----------\n");
+    cr_ls(3);
+    cr_rm(3, "text.mkv");
+    cr_ls(3);
+    */
 
 
-    // cr_unload(ROUTE, char* orig, char* dest);
 
-    // cr_load(ROUTE, char* orig);
+
+    // cr_softlink
+
+    /*
+    printf("----------Agregar un Softlink con el nombre mal escrito-----------\n");
+    cr_ls(4);
+    cr_softlink(1, 4, "text.mp3", "text.mp3");
+    cr_ls(4);
+
+    printf("----------Agregar un Softlink con nombres distintos-----------\n");
+    cr_ls(4);
+    cr_softlink(1, 4, "text.txt", "textt.txt");
+    cr_ls(4);
+
+    printf("----------Agregar un Softlink bien-----------\n");
+    cr_ls(4);
+    cr_softlink(1, 4, "text.txt", "text.txt");
+    printf("       \n");
+    cr_ls(4);
+
+    printf("----------Agregar un Softlink a un softlink-----------\n");
+    cr_ls(4);
+    cr_softlink(1, 4, "3/Baroque.mp3", "3/Baroque.mp3");
+
+    cr_ls(4);
+
+    printf("----------Remover un Softlink----------\n");
+    cr_ls(4);
+    cr_rm(4, "1/text.txt");
+    cr_ls(4);
+    */
+
+
+
+
+
 
 
 
