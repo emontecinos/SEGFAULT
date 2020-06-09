@@ -74,7 +74,53 @@ int main(int argument_count, char** arguments){
     // cr_ls(8);
     ///////
 
+    ///////
+    // // cr_hardlink y cr_rm agrgeando harlink en partición 2 y agregando
+    //
+    // /*
+    // printf("---------Agregar un Hardlink-----------\n");
+    // // Agregar un hardlink bien
+    // cr_ls(2);
+    // cr_hardlink(2, "yes.mp3", "destino.mp3");
+    // cr_ls(2);
+    ///////
 
+    ///////
+    // printf("----------Agregar un Hardlink con el nombre mal escrito-----------\n");
+    // // Agregar un hardlink con nombre mal escrito
+    // cr_ls(2);
+    // cr_hardlink(2, "yess.mp3", "destino2.mp3");
+    // cr_ls(2);
+    ///////
+
+
+    ///////
+    // // Borrar uno de los archivos
+    // printf("---------Borrar un Hardlink pero no todas las referencias----------\n");
+    // cr_bitmap(2, 0);
+    // cr_ls(2);
+    // cr_rm(2, "yes.mp3");
+    // cr_ls(2);
+    // cr_bitmap(2, 0);
+    ///////
+
+
+    ///////
+    // //Borrar el archivo completo
+    // printf("---------Borrar un Hardlink y todas las referencias----------\n");
+    // cr_ls(2);
+    // cr_rm(2, "destino.mp3");
+    // cr_ls(2);
+    // cr_bitmap(2, 0);
+    ///////
+
+
+    ///////
+    // // Agregar un hardlink a us softlink
+    // cr_ls(4);
+    // printf("---------Agregar un hardlink a un softlink----------\n");
+    // cr_hardlink(4, "1/Baroque.mp3", "des")
+    ///////
 
     return 1;
 }
