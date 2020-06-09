@@ -11,14 +11,19 @@ int main(int argument_count, char** arguments){
 
     cr_mount(arguments[1]);
 
+    // cr_bitmap(4, 1);
+
+
     ///////////
     // cr_ls(1);
+    // printf("aa\n");
     // crFILE* archivo;
     // archivo = cr_open(1, "guides2.txt", "r");
     // unsigned char buff[300];
     // int a;
     // a = cr_read(archivo, buff, 300);
     // printf("%i\n", a);
+    // cr_close(archivo);
     ///////
 
     ///////////
@@ -39,6 +44,19 @@ int main(int argument_count, char** arguments){
     // int b;
     // b = cr_exists(1, "holahola.txt");
     // printf("holahola.txt existe: %i\n", b);
+    // crFILE* archivo;
+    // archivo = cr_open(1, "holahola.txt", "r");
+    // crFILE* archivo2;
+    // archivo2 = cr_open(1, "holahola.txt", "f");
+    ///////
+
+    ///////////
+    // cr_ls(2);
+    // crFILE* archivo;
+    // archivo = cr_open(2, "holahola.txt", "r");
+    // int aa;
+    // unsigned char buff[300];
+    // aa = cr_read(archivo, buff, 2);
     ///////
 
     ///////////
@@ -46,6 +64,14 @@ int main(int argument_count, char** arguments){
     // crFILE* archivo;
     // archivo = cr_open(2, "text.txt", "w");
     // cr_ls(2);
+    ///////
+
+    ///////////
+    // cr_ls(8);
+    // int a;
+    // a = cr_exists(4, "text.txt");
+    // printf("%i\n", a);
+    // cr_ls(8);
     ///////
 
 
